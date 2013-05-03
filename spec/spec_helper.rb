@@ -10,7 +10,7 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
 
 SimpleCov.start do
   project_name 'hypa'
-  minimum_coverage 100
+  minimum_coverage 95
 
   add_filter '/spec/'
   add_filter '/vendor/'
