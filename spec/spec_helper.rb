@@ -1,2 +1,20 @@
-require File.expand_path('../../lib/hypa', __FILE__)
+require 'bundler/setup'
 require 'rack/test'
+require 'simplecov'
+require 'coveralls'
+
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
+  SimpleCov::Formatter::HTMLFormatter,
+  Coveralls::SimpleCov::Formatter
+]
+
+SimpleCov.start do
+  project_name 'hypa'
+  minimum_coverage 100
+
+  add_filter '/spec/'
+  add_filter '/vendor/'
+  add_group 'Library', 'lib'
+end
+
+require File.expand_path('../../lib/hypa', __FILE__)
