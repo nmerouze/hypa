@@ -36,9 +36,9 @@ describe Hypa::Item do
   end
 
   it 'stores data' do
-    a = Hypa::Attribute.new(name: 'full_name', value: 'Nicolas Mérouze', prompt: 'Full Name')
-    i = Hypa::Item.new(:data => [a.attributes])
-    expect(i.data[0].attributes).to eq(a.attributes)
+    a = Hypa::Attribute.new
+    item = Hypa::Item.new(:data => [a])
+    expect(item.data).to eq([a])
   end
 
   it 'stores links' do
@@ -66,17 +66,17 @@ end
 
 describe Hypa::Template do
   it 'stores data' do
-    a = Hypa::Attribute.new(name: 'full_name', value: 'Nicolas Mérouze', prompt: 'Full Name')
-    t = Hypa::Template.new(:data => [a.attributes])
-    expect(t.data[0].attributes).to eq(a.attributes)
+    a = Hypa::Attribute.new
+    t = Hypa::Template.new(:data => [a])
+    expect(t.data).to eq([a])
   end
 end
 
 describe Hypa::Query do
   it 'stores data' do
-    a = Hypa::Attribute.new(name: 'full_name', value: 'Nicolas Mérouze', prompt: 'Full Name')
-    q = Hypa::Query.new(:data => [a.attributes])
-    expect(q.data[0].attributes).to eq(a.attributes)
+    a = Hypa::Attribute.new
+    q = Hypa::Query.new(:data => [a])
+    expect(q.data).to eq([a])
   end
 
   it 'stores rel' do
@@ -107,13 +107,15 @@ describe Hypa::Collection do
   end
 
   it 'stores links' do
-    c = Hypa::Collection.new(:links => [])
-    expect(c.links).to eq([])
+    l = Hypa::Link.new
+    c = Hypa::Collection.new(:links => [l])
+    expect(c.links).to eq([l])
   end
 
   it 'stores items' do
-    c = Hypa::Collection.new(:items => [])
-    expect(c.items).to eq([])
+    i = Hypa::Item.new
+    c = Hypa::Collection.new(:items => [i])
+    expect(c.items).to eq([i])
   end
 
   it 'stores queries' do
