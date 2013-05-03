@@ -230,11 +230,11 @@ describe 'GET /:collection' do
     end
 
     it 'renders collection' do
-      expect(last_response.body).to eq(Oj.dump(app.collection(:posts), mode: :compat))
+      expect(last_response.body).to eq(MultiJson.dump(app.collection(:posts), mode: :compat))
     end
 
     it 'renders items' do
-      body = Oj.load(last_response.body)
+      body = MultiJson.load(last_response.body)
 
       expect(body['items'][0]).to eq({
         'href' => '/posts/1234',

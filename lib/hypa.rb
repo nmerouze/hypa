@@ -1,7 +1,7 @@
 require 'bundler/setup'
 require 'virtus'
 require 'sinatra'
-require 'oj' # TODO: Use multi_json
+require 'multi_json'
 require 'addressable/template'
 require 'rack/utils'
 require 'extlib/class'
@@ -90,10 +90,10 @@ module Hypa
           @@items[coll_name.singular.to_sym].clone.render(data)
         end
 
-        Oj.dump(collection.to_hash, mode: :compat)
+        MultiJson.dump(collection.to_hash, mode: :compat)
       else
         status 404
-        Oj.dump({ error: 'Not found.' }, mode: :compat)
+        MultiJson.dump({ error: 'Not found.' }, mode: :compat)
       end
     end
 

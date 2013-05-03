@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'virtus'
 gem 'extlib'
+gem 'multi_json'
 gem 'oj'
 gem 'sinatra'
 gem 'puma'

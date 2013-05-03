@@ -6,6 +6,7 @@ GEM
     descendants_tracker (0.0.1)
     diff-lcs (1.2.4)
     extlib (0.9.16)
+    multi_json (1.7.2)
     oj (2.0.12)
     puma (2.0.1)
       rack (>= 1.1, < 2.0)
@@ -39,6 +40,7 @@ PLATFORMS
 DEPENDENCIES
   addressable
   extlib
+  multi_json
   oj
   puma
   rack-test
