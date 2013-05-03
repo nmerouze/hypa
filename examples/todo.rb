@@ -1,14 +1,14 @@
 require File.expand_path('../../lib/hypa', __FILE__)
 require 'sequel'
 
-DB = Sequel.sqlite
+Hypa::Database.connection = Sequel.sqlite
 
-DB.create_table(:posts) do
+Hypa::Database.connection.create_table(:posts) do
   primary_key :id
   String :title
 end
 
-DB.from(:posts).insert(title: 'What a title!')
+Hypa::Database.connection.from(:posts).insert(title: 'What a title!')
 
 class Todo < Hypa::Application
 end

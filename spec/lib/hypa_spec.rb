@@ -222,10 +222,7 @@ describe 'GET /:collection' do
 
   context 'with existing collection' do
     before do
-      DB = double('Sequel')
-      dataset = double('Sequel dataset')
-      DB.stub(:from).and_return(dataset)
-      dataset.stub(:all).and_return([{id: 1234, title: 'My Test'}])
+      Hypa::Database.stub(:all).and_return([{id: 1234, title: 'My Test'}])
       item
       template
       collection

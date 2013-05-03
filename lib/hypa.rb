@@ -3,6 +3,7 @@ require 'virtus'
 require 'sinatra'
 require 'oj' # TODO: Use multi_json
 require 'addressable/template'
+require 'rack/utils'
 require 'extlib/class'
 require 'extlib/inflection'
 
@@ -30,9 +31,8 @@ module Hypa
     attribute :links, Array[Link]
 
     def render(data)
-      self.href = Addressable::Template.new(self.href).expand(data)
-      # FIX: value should not be URL escaped
-      self.data.each { |a| a.value = Addressable::Template.new(a.value).expand(data) }
+      self.href = Addressable::Template.new(self.href).expand(data).to_s
+      self.data.each { |a| a.value = Rack::Utils.unescape(Addressable::Template.new(a.value).expand(data).to_s) }
       self
     end
   end
@@ -63,6 +63,14 @@ module Hypa
     attribute :queries, Array[Query]
   end
 
+  class Database
+    cattr_accessor :connection
+
+    def self.all(coll_name)
+      @@connection.from(coll_name).all
+    end
+  end
+
   class Application < Sinatra::Base
     cattr_accessor :templates, :collections, :items
 
@@ -73,13 +81,13 @@ module Hypa
     end
 
     get '/:collection' do
-      coll_name = params[:collection].to_sym
+      coll_name = params[:collection]
 
-      if collection = @@collections[coll_name]
-        items = DB.from(coll_name).all
+      if collection = @@collections[coll_name.to_sym]
+        items = Database.all(coll_name)
 
         collection.items = items.map do |data|
-          @@items[coll_name.to_s.singular.to_sym].clone.render(data)
+          @@items[coll_name.singular.to_sym].clone.render(data)
         end
 
         Oj.dump(collection.to_hash, mode: :compat)
