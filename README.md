@@ -4,9 +4,11 @@
 
 # List of Hypermedia content types
 
-* Collection+JSON
-* HAL
-* Siren
+Hypa is using its own content type "application/vnd.hypa+json" (not yet finalized). I'll explain soon why I don't use one of the following.
+
+* [Collection+JSON](http://amundsen.com/media-types/collection/)
+* [HAL](http://stateless.co/hal_specification.html)
+* [Siren](https://github.com/kevinswiber/siren)
 * [JSON API](http://jsonapi.org)
 
 # TODO
