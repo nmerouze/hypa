@@ -59,7 +59,7 @@ module Hypa
     end
   end
 
-  class Resource
+  class Collection
     def initialize(&block)
       @actions = []
       block.call(self) if block_given?
@@ -76,15 +76,28 @@ module Hypa
     def to_hash
       { schema: @schema.to_hash, actions: @actions.map { |a| a.to_hash } }
     end
+
+    # TODO: Refactoring
+    def render(data)
+      attributes = @schema.attributes.map { |a| a.name }
+
+      items = data.map do |d|
+        item = {}
+        attributes.each { |a| item[a] = d[a] }
+        item
+      end
+      
+      self.to_hash.merge(items: items)
+    end
   end
 
   class Application
-    cattr_reader :resources
+    cattr_reader :collections
 
-    @@resources = {}
+    @@collections = {}
 
-    def self.resource(name, &block)
-      @@resources[name] = Resource.new(&block)
+    def self.collection(name, &block)
+      @@collections[name] = Collection.new(&block)
     end
   end
 end

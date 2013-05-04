@@ -1,0 +1,9 @@
+source 'https://rubygems.org'
+
+gem 'sinatra'
+gem 'multi_json'
+gem 'oj'
+gem 'puma'
+gem 'sequel'
+gem 'sqlite3'
+gem 'hypa', path: '../../'

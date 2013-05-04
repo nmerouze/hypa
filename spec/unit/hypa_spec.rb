@@ -49,9 +49,9 @@ end
 #   it 'casts type to string'
 # end
 
-describe Hypa::Application, '.resource' do
+describe Hypa::Application, '.collection' do
   it 'stores a resource' do
-    Hypa::Application.resource :posts, &Proc.new {}
-    expect(Hypa::Application.resources[:posts]).to be_a(Hypa::Resource)
+    Hypa::Application.collection :posts, &Proc.new {}
+    expect(Hypa::Application.collections[:posts]).to be_a(Hypa::Collection)
   end
 end

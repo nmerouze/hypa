@@ -8,3 +8,11 @@
 * HAL
 * Siren
 * [JSON API](http://jsonapi.org)
+
+# TODO
+
+* Root element should be the name of the collection
+* Refactoring and improve Collection#render
+* Nested attribute sets
+* Filter a hash through action params
+* More features (descriptions, validations, etc)

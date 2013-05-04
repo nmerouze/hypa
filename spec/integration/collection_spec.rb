@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe 'Hypa::Resource.new' do
+describe Hypa::Collection, '.new' do
   before do
-    @resource = Hypa::Resource.new do |r|
-      r.schema do |s|
+    @resource = Hypa::Collection.new do |c|
+      c.schema do |s|
         s.attribute(:title, type: 'string')
       end
 
-      r.action do |a|
+      c.action do |a|
         a.rel :search
         a.href '/posts/search'
 
@@ -26,5 +26,21 @@ describe 'Hypa::Resource.new' do
 
   it 'defines actions' do
     expect(@properties[:actions]).to eq([{ rel: 'search', href: '/posts/search', params: [{ name: 'q', type: 'string' }] }])
+  end
+end
+
+describe Hypa::Collection, '#render' do
+  before do
+    @resource = Hypa::Collection.new do |c|
+      c.schema do |s|
+        s.attribute(:title, type: 'string')
+      end
+    end
+
+    @properties = @resource.render([{ title: 'My Test Title' }])
+  end
+
+  it 'renders items of the resource' do
+    expect(@properties[:items]).to eq([{ title: 'My Test Title' }])
   end
 end
