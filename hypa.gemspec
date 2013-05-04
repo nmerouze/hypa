@@ -17,19 +17,10 @@ Gem::Specification.new do |s|
   s.require_path          = 'lib'
   s.required_ruby_version = '>= 1.9.3'
 
-  s.add_dependency 'virtus'
   s.add_dependency 'extlib'
-  s.add_dependency 'multi_json'
-  s.add_dependency 'sinatra'
-  s.add_dependency 'addressable'
-  s.add_dependency 'sequel'
 
   s.add_development_dependency 'rspec'
-  s.add_development_dependency 'rack-test'
   s.add_development_dependency 'rake'
-  s.add_development_dependency 'sqlite3'
-  s.add_development_dependency 'oj'
-  s.add_development_dependency 'puma'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'coveralls'
 end
