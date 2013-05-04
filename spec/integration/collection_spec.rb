@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Hypa::Collection, '.new' do
   before do
-    @resource = Hypa::Collection.new do |c|
+    @collection = Hypa::Collection.new do |c|
       c.schema do |s|
         s.attribute(:title, type: 'string')
       end
@@ -17,7 +17,7 @@ describe Hypa::Collection, '.new' do
       end
     end
 
-    @properties = @resource.to_hash
+    @properties = @collection.to_hash
   end
 
   it 'defines schema' do
@@ -31,16 +31,30 @@ end
 
 describe Hypa::Collection, '#render' do
   before do
-    @resource = Hypa::Collection.new do |c|
+    @collection = Hypa::Collection.new do |c|
       c.schema do |s|
         s.attribute(:title, type: 'string')
       end
     end
-
-    @properties = @resource.render([{ title: 'My Test Title' }])
   end
 
-  it 'renders items of the resource' do
-    expect(@properties[:items]).to eq([{ title: 'My Test Title' }])
+  context 'with items' do
+    before do
+      @properties = @collection.render([{ title: 'My Test Title' }])
+    end
+
+    it 'renders items of the collection' do
+      expect(@properties[:items]).to eq([{ title: 'My Test Title' }])
+    end
+  end
+
+  context 'with a single item' do
+    before do
+      @properties = @collection.render({ title: 'My Test Title' })
+    end
+
+    it 'renders items of the collection' do
+      expect(@properties[:items]).to eq({ title: 'My Test Title' })
+    end
   end
 end

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hypa (0.0.2)
+    hypa (0.0.3)
       extlib
 
 GEM

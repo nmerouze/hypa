@@ -41,15 +41,21 @@ Blog.collection :posts do |c|
   end
 end
 
+include Sinatra
+
 before do
   content_type 'application/hypa+json'
 end
-
-include Sinatra
 
 get '/posts' do
   template = Blog.collections[:posts]
   # parameters = template.actions[:self].filter(params)
   posts = Post.all#(parameters)
+  MultiJson.dump(template.render(posts))
+end
+
+get '/posts/:id' do
+  template = Blog.collections[:posts]
+  posts = Post.find(params[:id])
   MultiJson.dump(template.render(posts))
 end

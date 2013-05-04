@@ -81,10 +81,15 @@ module Hypa
     def render(data)
       attributes = @schema.attributes.map { |a| a.name }
 
-      items = data.map do |d|
-        item = {}
-        attributes.each { |a| item[a] = d[a] }
-        item
+      if data.is_a?(Array)
+        items = data.map do |d|
+          item = {}
+          attributes.each { |a| item[a] = d[a] }
+          item
+        end
+      else
+        items = {}
+        attributes.each { |a| items[a] = data[a] }
       end
       
       self.to_hash.merge(items: items)
