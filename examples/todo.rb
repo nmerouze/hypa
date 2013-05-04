@@ -27,11 +27,11 @@ Todo.template :post do |t|
   ]
 end
 
-Todo.template :search do |t|
-  t.data = [
-    { name: 'q', value: '', prompt: 'Search' }
-  ]
-end
+# Todo.template :search do |t|
+#   t.data = [
+#     { name: 'q', value: '', prompt: 'Search' }
+#   ]
+# end
 
 Todo.collection :posts do |c|
   c.version = '1.0'
@@ -41,12 +41,9 @@ Todo.collection :posts do |c|
     { rel: 'feed', href: '/posts/feed' }
   ]
 
-  c.queries = [
-    { rel: 'search', href: '/posts/search', prompt: 'Search', data: Todo.template(:search).data }
-  ]
+  # c.queries = [
+  #   { rel: 'search', href: '/posts/search', prompt: 'Search', data: Todo.template(:search).data }
+  # ]
 
   c.template = Todo.template(:post)
 end
-
-# https://github.com/rkh/mustermann
-# https://github.com/awslabs/seahorse

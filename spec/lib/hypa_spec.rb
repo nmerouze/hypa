@@ -237,19 +237,20 @@ describe 'GET /:collection' do
       expect(last_response.body).to eq(MultiJson.dump(app.collection(:posts), mode: :compat))
     end
 
-    it 'renders items' do
-      body = MultiJson.load(last_response.body)
+    # FIx: Delete
+    # it 'renders items' do
+    #   body = MultiJson.load(last_response.body)
 
-      expect(body['items'][0]).to eq({
-        'href' => '/posts/1234',
+    #   expect(body['items'][0]).to eq({
+    #     'href' => '/posts/1234',
 
-        'links' => [],
+    #     'links' => [],
 
-        'data' => [
-          { 'name' => 'title', 'value' => 'My Test', 'prompt' => 'Title' }
-        ]
-      })
-    end
+    #     'data' => [
+    #       { 'name' => 'title', 'value' => 'My Test', 'prompt' => 'Title' }
+    #     ]
+    #   })
+    # end
   end
 
   context 'withouth existing collection' do
