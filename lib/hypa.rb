@@ -1,108 +1,177 @@
 # encoding: utf-8
 require 'bundler/setup'
+require 'virtus'
 require 'extlib/class'
 
-module Hypa
-  class Attribute
-    attr_reader :name, :type
+class Hypa::Action
+  include Virtus
 
-    def initialize(properties = {})
-      @name = properties.delete(:name)
-      @type = properties.delete(:type)
-    end
+  class Param
+    include Virtus
 
-    def to_hash
-      { name: @name.to_s, type: @type.to_s }
-    end
+    attribute :name, String
+    attribute :type, String
   end
 
-  class AttributeSet
-    attr_reader :attributes
+  attribute :rel, Symbol
+  attribute :href, String
+  attribute :method, Symbol
+  attribute :params, Array[Param]
 
-    def initialize(&block)
-      @attributes = []
-      block.call(self) if block_given?
-    end
-
-    def attribute(name, properties = {})
-      @attributes << Attribute.new(properties.merge(name: name))
-    end
-
-    # def set(name, &block)
-    #   @sets[name] << AttributeSet.new(&block)
-    # end
-
-    def to_hash
-      @attributes.map { |a| a.to_hash }
-    end
+  def initialize(&block)
+    block.call(DSL.new(self)) if block_given?
   end
 
-  class Action
-    def initialize(&block)
-      block.call(self) if block_given?
+  class DSL
+    def initialize(action)
+      @action = action
     end
 
-    def rel(value)
-      @rel = value
+    def href(href)
+      @action.href = href
     end
 
-    def href(value)
-      @href = value
+    def method(method)
+      @action.method = method
     end
 
-    def params(&block)
-      @params = AttributeSet.new(&block)
+    def integer(name, options = {})
+      self.param(name, options.merge(type: 'integer'))
     end
 
-    def to_hash
-      { rel: @rel.to_s, href: @href.to_s, params: @params.to_hash }
+    def string(name, options = {})
+      self.param(name, options.merge(type: 'string'))
+    end
+
+    def array(name, options = {})
+      self.param(name, options.merge(type: 'array'))
+    end
+
+    def param(name, options = {})
+      @action.params << Param.new(options.merge(name: name))
     end
   end
+end
 
-  class Collection
-    def initialize(&block)
-      @actions = []
-      block.call(self) if block_given?
+class Hypa::Resource
+  include Virtus
+
+  class Property
+    include Virtus
+
+    attribute :name, String
+    attribute :type, String
+  end
+
+  attribute :href, String
+  attribute :methods, Hash[Symbol => Symbol]
+  attribute :properties, Array[Property]
+  attribute :actions, Hash[Symbol => Hypa::Action]
+
+  def initialize(&block)
+    block.call(DSL.new(self)) if block_given?
+  end
+
+  def attributes
+    self.methods.each do |method, action_name|
+      action = self.actions[action_name]
+      self.actions[action_name] = action = Hypa::Action.new unless action
+      action.method = method
+      action.href = self.href
     end
 
-    def schema(&block)
-      @schema = AttributeSet.new(&block)
+    actions = self.actions.map do |rel, action|
+      { rel: rel, method: action.method, href: action.href, params: action.params.map { |p| p.attributes } }
     end
 
-    def action(&block)
-      @actions << Action.new(&block)
+    { properties: properties.map { |p| p.attributes }, actions: actions }
+  end
+
+  class DSL
+    def initialize(resource)
+      @resource = resource
     end
 
-    def to_hash
-      { schema: @schema.to_hash, actions: @actions.map { |a| a.to_hash } }
+    def href(href)
+      @resource.href = href
     end
 
-    # TODO: Refactoring
-    def render(data)
-      attributes = @schema.attributes.map { |a| a.name }
+    def methods(methods = {})
+      @resource.methods = methods
+    end
 
-      if data.is_a?(Array)
-        items = data.map do |d|
-          item = {}
-          attributes.each { |a| item[a] = d[a] }
-          item
-        end
-      else
-        items = {}
-        attributes.each { |a| items[a] = data[a] }
+    def action(name, &block)
+      @resource.actions[name] = Hypa::Action.new(&block)
+    end
+
+    def integer(name, options = {})
+      self.property(name, options.merge(type: 'integer'))
+    end
+
+    def string(name, options = {})
+      self.property(name, options.merge(type: 'string'))
+    end
+
+    def array(name, options = {})
+      self.property(name, options.merge(type: 'array'))
+    end
+
+    def property(name, options = {})
+      @resource.properties << Property.new(options.merge(name: name))
+    end
+  end
+end
+
+class Hypa::Collection
+  include Virtus
+
+  attribute :href, String
+  attribute :methods, Hash[Symbol => Symbol]
+  attribute :actions, Hash[Symbol => Hypa::Action]
+  attribute :resource, Hypa::Resource
+
+  def initialize(&block)
+    block.call(DSL.new(self)) if block_given?
+  end
+
+  def attributes
+    self.methods.each do |method, action_name|
+      if action = self.actions[action_name]
+        action.method = method
+        action.href = self.href
       end
-      
-      self.to_hash.merge(items: items)
     end
+
+    actions = self.actions.map do |rel, action|
+      { rel: rel, method: action.method, href: action.href, params: action.params.map { |p| p.attributes } }
+    end
+
+    { resource: self.resource.attributes, actions: actions }
   end
 
-  class Application
-    cattr_reader :collections
+  def render(model)
+    Hypa::Application.new(self, model)    
+  end
 
-    @@collections = {}
+  class DSL
+    def initialize(collection)
+      @collection = collection
+    end
 
-    def self.collection(name, &block)
-      @@collections[name] = Collection.new(&block)
+    def href(href)
+      @collection.href = href
+    end
+
+    def methods(methods = {})
+      @collection.methods = methods
+    end
+
+    def resource(&block)
+      @collection.resource = Hypa::Resource.new(&block)
+    end
+
+    def action(name, &block)
+      @collection.actions[name] = Hypa::Action.new(&block)
     end
   end
 end
