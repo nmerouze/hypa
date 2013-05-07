@@ -87,6 +87,12 @@ class Hypa::Resource
     { properties: properties.map { |p| p.attributes }, actions: actions }
   end
 
+  def render(data)
+    hash = {}
+    properties.each { |p| hash[p.name] = data.values[p.name.to_sym] }
+    hash
+  end
+
   class DSL
     def initialize(resource)
       @resource = resource
@@ -130,7 +136,8 @@ class Hypa::Collection
   attribute :actions, Hash[Symbol => Hypa::Action]
   attribute :resource, Hypa::Resource
 
-  def initialize(&block)
+  def initialize(name, &block)
+    @name = name
     block.call(DSL.new(self)) if block_given?
   end
 
@@ -149,8 +156,8 @@ class Hypa::Collection
     { resource: self.resource.attributes, actions: actions }
   end
 
-  def render(model)
-    Hypa::Application.new(self, model)    
+  def render(data)
+    { @name => data.map { |item| self.resource.render(item) }, meta: self.attributes }
   end
 
   class DSL

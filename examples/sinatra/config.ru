@@ -1,7 +1,8 @@
 require 'bundler/setup'
-require 'sinatra/base'
+require 'sinatra'
 require 'sequel'
 require 'hypa'
+require 'multi_json'
 
 class Blog
   cattr_reader :collections
@@ -9,7 +10,7 @@ class Blog
   @@collections = {}
 
   def self.collection(name, &block)
-    @@collections[name] = Hypa::Collection.new(&block)
+    @@collections[name] = Hypa::Collection.new(name, &block)
   end
 end
 
@@ -47,43 +48,14 @@ Blog.collection :posts do |c|
   end
 end
 
-# actions = Blog.collections.map { |c| c.resource.actions + c.actions }
+before do
+  content_type 'application/vnd.hypa+json'
+end
 
-# get '*' do
-#   Blog.collections.map { |c| c.actions }
-# end
+get '/posts' do
+  template = Blog.collections[:posts]
+  posts = Post.all
+  MultiJson.dump(template.render(posts))
+end
 
-# include Sinatra
-
-# before do
-#   content_type 'application/hypa+json'
-# end
-
-# get '/posts' do
-#   template = Blog.collections[:posts]
-#   # parameters = template.actions[:self].filter(params)
-#   posts = Post.all#(parameters)
-#   MultiJson.dump(template.render(posts))
-# end
-
-# get '/posts/:id' do
-#   template = Blog.collections[:posts]
-#   posts = Post.find(params[:id])
-#   MultiJson.dump(template.render(posts))
-# end
-
-# post '/posts' do
-#   template = Blog.collections[:posts]
-#   posts = Post.create(template[:schema].filter(params))
-#   # 204
-# end
-
-# patch '/posts/:id' do
-
-# end
-
-# delete '/posts/:id' do
-#   Post.destroy(params[:id])
-# end
-
-run Proc.new {}
+run Sinatra::Application
