@@ -26,25 +26,25 @@ DB.from(:posts).insert(title: 'HypaMedia')
 class Post < Sequel::Model
 end
 
-Blog.collection :posts do |c|
-  c.href '/posts'
-  c.methods get: :self, post: :create
+Blog.collection :posts do
+  href '/posts'
+  methods get: :self, post: :create
 
-  c.resource do |r|
-    r.href '/posts/{id}'
-    r.methods get: :self, patch: :update, delete: :destroy
+  resource do
+    href '/posts/{id}'
+    methods get: :self, patch: :update, delete: :destroy
 
-    r.integer :id
-    r.string :title
+    integer :id
+    string :title
   end
 
-  c.action :self do |a|
-    a.integer :limit
-    a.array :title_in
+  action :self do
+    integer :limit
+    array :title_in
   end
 
-  c.action :create do |a|
-    a.string :title, required: true
+  action :create do
+    string :title, required: true
   end
 end
 
