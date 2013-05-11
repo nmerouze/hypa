@@ -1,204 +1,80 @@
 # encoding: utf-8
 require 'bundler/setup'
 require 'virtus'
-require 'extlib/class'
+# require 'extlib/class'
 
-module Hypa::DSLHandler
-  def handle_block(block)
-    return unless block
-    if block.arity == 1
-      block.call(self)
-    else
-      instance_eval(&block)
-    end
-  end
+# TODO: Define template and default templates (Resource, Collection, NotFound, etc)
+# TODO: Serialization of resource and collection
+# TODO: get, post, patch, delete actions for resources and collections
+
+module Hypa
+end
+
+class Hypa::Template
+end
+
+class Hypa::Response
+  include Virtus
+  attribute :status, Integer
+  attribute :template, Hypa::Template
 end
 
 class Hypa::Action
   include Virtus
+  attribute :name, Symbol
+  attribute :method, String
+  attribute :_parameters, Array, writer: :private, default: [] # FIX: accessor: :private doesn't work
+  attribute :responses, Array[Hypa::Response]
 
-  class Param
-    include Virtus
-
-    attribute :name, String
-    attribute :type, String
+  def initialize(attributes = {}, &block)
+    super(attributes)
+    instance_eval(&block) if block_given?
   end
 
-  attribute :rel, Symbol
-  attribute :href, String
-  attribute :method, Symbol
-  attribute :params, Array[Param]
-
-  def initialize(&block)
-    DSL.new(self, &block)
+  def params(*params)
+    params.empty? ? self._parameters : self._parameters = params
   end
 
-  class DSL
-    include Hypa::DSLHandler
+  def response(status, template)
+    self.responses << Hypa::Response.new(status: 200, template: template)
+  end
+end
 
-    def initialize(action, &block)
-      @action = action
-      handle_block(block)
-    end
+module Hypa::Actions
+  include Virtus
+  attribute :actions, Array[Hypa::Action]
 
-    def href(href)
-      @action.href = href
-    end
-
-    def method(method)
-      @action.method = method
-    end
-
-    def integer(name, options = {})
-      self.param(name, options.merge(type: 'integer'))
-    end
-
-    def string(name, options = {})
-      self.param(name, options.merge(type: 'string'))
-    end
-
-    def array(name, options = {})
-      self.param(name, options.merge(type: 'array'))
-    end
-
-    def param(name, options = {})
-      @action.params << Param.new(options.merge(name: name))
-    end
+  def get(name, &block)
+    self.actions << Hypa::Action.new(name: name, method: 'GET', &block)
   end
 end
 
 class Hypa::Resource
   include Virtus
+  include Hypa::Actions
 
-  class Property
-    include Virtus
-
-    attribute :name, String
-    attribute :type, String
-  end
-
-  attribute :href, String
-  attribute :methods, Hash[Symbol => Symbol]
-  attribute :properties, Array[Property]
-  attribute :actions, Hash[Symbol => Hypa::Action]
+  attribute :_properties, Array, writer: :private, default: []
 
   def initialize(&block)
-    DSL.new(self, &block)
+    instance_eval(&block) if block_given?
   end
 
-  def attributes
-    self.methods.each do |method, action_name|
-      action = self.actions[action_name]
-      self.actions[action_name] = action = Hypa::Action.new unless action
-      action.method = method
-      action.href = self.href
-    end
-
-    actions = self.actions.map do |rel, action|
-      { rel: rel, method: action.method, href: action.href, params: action.params.map { |p| p.attributes } }
-    end
-
-    { properties: properties.map { |p| p.attributes }, actions: actions }
-  end
-
-  def render(data)
-    hash = {}
-    properties.each { |p| hash[p.name] = data.values[p.name.to_sym] }
-    hash
-  end
-
-  class DSL
-    include Hypa::DSLHandler
-
-    def initialize(resource, &block)
-      @resource = resource
-      handle_block(block)
-    end
-
-    def href(href)
-      @resource.href = href
-    end
-
-    def methods(methods = {})
-      @resource.methods = methods
-    end
-
-    def action(name, &block)
-      @resource.actions[name] = Hypa::Action.new(&block)
-    end
-
-    def integer(name, options = {})
-      self.property(name, options.merge(type: 'integer'))
-    end
-
-    def string(name, options = {})
-      self.property(name, options.merge(type: 'string'))
-    end
-
-    def array(name, options = {})
-      self.property(name, options.merge(type: 'array'))
-    end
-
-    def property(name, options = {})
-      @resource.properties << Property.new(options.merge(name: name))
-    end
+  def properties(*properties)
+    properties.empty? ? self._properties : self._properties = properties
   end
 end
 
 class Hypa::Collection
   include Virtus
+  include Hypa::Actions
 
-  attribute :href, String
-  attribute :methods, Hash[Symbol => Symbol]
-  attribute :actions, Hash[Symbol => Hypa::Action]
-  attribute :resource, Hypa::Resource
+  attribute :_resource, Hypa::Resource, writer: :private
 
-  def initialize(name, &block)
-    @name = name
-    DSL.new(self, &block)
+  def initialize(&block)
+    instance_eval(&block) if block_given?
   end
 
-  def attributes
-    self.methods.each do |method, action_name|
-      if action = self.actions[action_name]
-        action.method = method
-        action.href = self.href
-      end
-    end
-
-    actions = self.actions.map do |rel, action|
-      { rel: rel, method: action.method, href: action.href, params: action.params.map { |p| p.attributes } }
-    end
-
-    { resource: self.resource.attributes, actions: actions }
-  end
-
-  def render(data)
-    { @name => data.map { |item| self.resource.render(item) }, meta: self.attributes }
-  end
-
-  class DSL
-    include Hypa::DSLHandler
-
-    def initialize(collection, &block)
-      @collection = collection
-      handle_block(block)
-    end
-
-    def href(href)
-      @collection.href = href
-    end
-
-    def methods(methods = {})
-      @collection.methods = methods
-    end
-
-    def resource(&block)
-      @collection.resource = Hypa::Resource.new(&block)
-    end
-
-    def action(name, &block)
-      @collection.actions[name] = Hypa::Action.new(&block)
-    end
+  def resource(resource = nil)
+    resource.nil? ? self._resource : self._resource = resource
   end
 end

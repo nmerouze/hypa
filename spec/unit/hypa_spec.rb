@@ -1,57 +1,90 @@
 require 'spec_helper'
 
-# describe Hypa::Attribute, '#initialize' do
-#   before do
-#     @attribute = Hypa::Attribute.new(name: 'title', type: 'string')
-#   end
+describe Hypa::Template do
+end
 
-#   it 'stores name' do
-#     expect(@attribute.name).to eq('title')
-#   end
+describe Hypa::Response do
+  let(:response) { described_class.new }
 
-#   it 'stores type' do
-#     expect(@attribute.type).to eq('string')
-#   end
-# end
+  it 'stores a status' do
+    expect(response.status).to be_nil
+    response.status = 200
+    expect(response.status).to eq(200)
+  end
 
-# describe Hypa::AttributeSet, '#attribute' do
-#   before do
-#     @attribute = double('Hypa::Attribute')
-#     Hypa::Attribute.stub(:new).and_return(@attribute)
-#     @set = Hypa::AttributeSet.new
-#   end
+  it 'stores a template' do
+    template = Hypa::Template.new
+    expect(response.template).to be_nil
+    response.template = template
+    expect(response.template).to eq(template)
+  end
+end
 
-#   it 'initializes attribute with name and type' do
-#     Hypa::Attribute.should_receive(:new).with(name: 'title', type: 'string')
-#     @set.attribute('title', type: 'string')
-#   end
+describe Hypa::Action do
+  let(:action) { described_class.new }
 
-#   it 'stores attribute' do
-#     @set.attribute('title', type: 'string')
-#     expect(@set.attributes).to eq([@attribute])
-#   end
-# end
+  it 'stores params' do
+    expect(action.params).to eq([])
+    action.params(:id, :title)
+    expect(action.params).to eq([:id, :title])
+  end
 
-# # describe Hypa::Action, '#to_hash' do
-# #   it 'serializes properties to a hash'
-# #   it 'casts rel to string'
-# #   it 'casts href to string'
-# #   it 'serializes params'
-# # end
+  it 'stores a name' do
+    expect(action.name).to be_nil
+    action.name = :self
+    expect(action.name).to eq(:self)
+  end
 
-# # describe Hypa::AttributeSet, '#to_hash' do
-# #   it 'serializes attributes into an array of hashes'
-# # end
+  it 'stores a method' do
+    expect(action.method).to be_nil
+    action.method = 'GET'
+    expect(action.method).to eq('GET')
+  end
 
-# # describe Hypa::Attribute, '#to_hash' do
-# #   it 'serializes properties to a hash'
-# #   it 'casts name to string'
-# #   it 'casts type to string'
-# # end
+  it 'stores a response' do
+    response = Hypa::Response.new(status: 200, template: Hypa::Template.new)
+    Hypa::Response.stub(:new).and_return(response)
 
-# describe Hypa::Application, '.collection' do
-#   it 'stores a resource' do
-#     Hypa::Application.collection :posts, &Proc.new {}
-#     expect(Hypa::Application.collections[:posts]).to be_a(Hypa::Collection)
-#   end
-# end
+    expect(action.responses).to eq([])
+    action.response(200, Hypa::Template.new)
+    expect(action.responses).to eq([response])
+  end
+end
+
+shared_examples 'defining actions' do
+  it 'stores a get action' do
+    action = Hypa::Action.new
+    Hypa::Action.stub(:new).and_return(action)
+
+    expect(subject.actions).to eq([])
+    subject.get(:self) {}
+    expect(subject.actions).to eq([action])
+  end
+end
+
+describe Hypa::Resource do
+  let(:resource) { described_class.new }
+  subject { resource }
+
+  it 'stores properties' do
+    expect(resource.properties).to eq([])
+    resource.properties(:id, :title)
+    expect(resource.properties).to eq([:id, :title])
+  end
+
+  it_has_behavior 'defining actions'
+end
+
+describe Hypa::Collection do
+  let(:collection) { described_class.new }
+  subject { collection }
+
+  it 'stores resource' do
+    resource = Hypa::Resource.new
+    expect(collection.resource).to be_nil
+    collection.resource(resource)
+    expect(collection.resource).to eq(resource)
+  end
+
+  it_has_behavior 'defining actions'
+end
