@@ -3,6 +3,17 @@ require 'bundler/setup'
 require 'virtus'
 require 'extlib/class'
 
+module Hypa::DSLHandler
+  def handle_block(block)
+    return unless block
+    if block.arity == 1
+      block.call(self)
+    else
+      instance_eval(&block)
+    end
+  end
+end
+
 class Hypa::Action
   include Virtus
 
@@ -19,12 +30,15 @@ class Hypa::Action
   attribute :params, Array[Param]
 
   def initialize(&block)
-    block.call(DSL.new(self)) if block_given?
+    DSL.new(self, &block)
   end
 
   class DSL
-    def initialize(action)
+    include Hypa::DSLHandler
+
+    def initialize(action, &block)
       @action = action
+      handle_block(block)
     end
 
     def href(href)
@@ -69,7 +83,7 @@ class Hypa::Resource
   attribute :actions, Hash[Symbol => Hypa::Action]
 
   def initialize(&block)
-    block.call(DSL.new(self)) if block_given?
+    DSL.new(self, &block)
   end
 
   def attributes
@@ -94,8 +108,11 @@ class Hypa::Resource
   end
 
   class DSL
-    def initialize(resource)
+    include Hypa::DSLHandler
+
+    def initialize(resource, &block)
       @resource = resource
+      handle_block(block)
     end
 
     def href(href)
@@ -138,7 +155,7 @@ class Hypa::Collection
 
   def initialize(name, &block)
     @name = name
-    block.call(DSL.new(self)) if block_given?
+    DSL.new(self, &block)
   end
 
   def attributes
@@ -161,8 +178,11 @@ class Hypa::Collection
   end
 
   class DSL
-    def initialize(collection)
+    include Hypa::DSLHandler
+
+    def initialize(collection, &block)
       @collection = collection
+      handle_block(block)
     end
 
     def href(href)
