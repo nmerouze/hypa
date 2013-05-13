@@ -3,23 +3,6 @@ require 'spec_helper'
 describe Hypa::Template do
 end
 
-describe Hypa::Response do
-  let(:response) { described_class.new }
-
-  it 'stores a status' do
-    expect(response.status).to be_nil
-    response.status = 200
-    expect(response.status).to eq(200)
-  end
-
-  it 'stores a template' do
-    template = Hypa::Template.new
-    expect(response.template).to be_nil
-    response.template = template
-    expect(response.template).to eq(template)
-  end
-end
-
 describe Hypa::Action do
   let(:action) { described_class.new }
 
@@ -49,16 +32,43 @@ describe Hypa::Action do
     action.response(200, Hypa::Template.new)
     expect(action.responses).to eq([response])
   end
+
+  describe '#to_hash' do
+    it 'serializes the object' do
+      action.name = :self
+      action.method = 'GET'
+      action.params(:id, :title)
+      expect(action.to_hash).to eq({ name: :self, method: 'GET', params: [:id, :title], responses: [] })
+    end
+  end
 end
 
+# FIX: Doesn't assert action's method
 shared_examples 'defining actions' do
-  it 'stores a get action' do
-    action = Hypa::Action.new
-    Hypa::Action.stub(:new).and_return(action)
-
+  before do
+    @action = Hypa::Action.new
+    Hypa::Action.stub(:new).and_return(@action)
     expect(subject.actions).to eq([])
+  end
+
+  it 'stores a get action' do
     subject.get(:self) {}
-    expect(subject.actions).to eq([action])
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a post action' do
+    subject.post(:create) {}
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a patch action' do
+    subject.patch(:create) {}
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a delete action' do
+    subject.delete(:create) {}
+    expect(subject.actions).to eq([@action])
   end
 end
 
@@ -73,6 +83,13 @@ describe Hypa::Resource do
   end
 
   it_has_behavior 'defining actions'
+
+  describe '#to_hash' do
+    it 'serializes the object' do
+      resource.properties(:id, :title)
+      expect(resource.to_hash).to eq({ properties: [:id, :title], actions: [] })
+    end
+  end
 end
 
 describe Hypa::Collection do
@@ -87,4 +104,10 @@ describe Hypa::Collection do
   end
 
   it_has_behavior 'defining actions'
+
+  describe '#to_hash' do
+    it 'serializes the object' do
+      expect(collection.to_hash).to eq({ resource: nil, actions: [] })
+    end
+  end
 end

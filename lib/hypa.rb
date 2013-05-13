@@ -4,20 +4,23 @@ require 'virtus'
 # require 'extlib/class'
 
 # TODO: Define template and default templates (Resource, Collection, NotFound, etc)
-# TODO: Serialization of resource and collection
-# TODO: get, post, patch, delete actions for resources and collections
 
 module Hypa
 end
 
 class Hypa::Template
+  def to_hash
+    {}
+  end
 end
 
-class Hypa::Response
-  include Virtus
-  attribute :status, Integer
-  attribute :template, Hypa::Template
+class Hypa::ResourceTemplate < Hypa::Template
 end
+
+class Hypa::CollectionTemplate < Hypa::Template
+end
+
+require_relative 'hypa/response'
 
 class Hypa::Action
   include Virtus
@@ -38,6 +41,10 @@ class Hypa::Action
   def response(status, template)
     self.responses << Hypa::Response.new(status: 200, template: template)
   end
+
+  def to_hash
+    { name: self.name, method: self.method, params: self._parameters, responses: responses.map { |r| r.to_hash } }
+  end
 end
 
 module Hypa::Actions
@@ -45,7 +52,25 @@ module Hypa::Actions
   attribute :actions, Array[Hypa::Action]
 
   def get(name, &block)
-    self.actions << Hypa::Action.new(name: name, method: 'GET', &block)
+    action(name, 'GET', &block)
+  end
+
+  def post(name, &block)
+    action(name, 'POST', &block)
+  end
+
+  def patch(name, &block)
+    action(name, 'PATCH', &block)
+  end
+
+  def delete(name, &block)
+    action(name, 'DELETE', &block)
+  end
+
+  private
+
+  def action(name, method, &block)
+    self.actions << Hypa::Action.new(name: name, method: method, &block)
   end
 end
 
@@ -62,6 +87,10 @@ class Hypa::Resource
   def properties(*properties)
     properties.empty? ? self._properties : self._properties = properties
   end
+
+  def to_hash
+    { properties: self._properties, actions: actions.map { |a| a.to_hash } }
+  end
 end
 
 class Hypa::Collection
@@ -76,5 +105,9 @@ class Hypa::Collection
 
   def resource(resource = nil)
     resource.nil? ? self._resource : self._resource = resource
+  end
+
+  def to_hash
+    { resource: (self.resource ? self.resource.to_hash : nil), actions: actions.map { |a| a.to_hash } }
   end
 end
