@@ -3,7 +3,7 @@ require 'multi_json'
 require 'extlib/class'
 
 class Hypa::Application < Sinatra::Base
-  cattr_accessor :resources
+  class_inheritable_accessor :resources
   self.resources = {}
 
   before do

@@ -5,7 +5,7 @@ describe Hypa::Application do
     let(:resource) { MockApp.resource :post, '/posts/:id' }
 
     before do
-      class ::MockApp < Hypa::Application; end
+      class MockApp < Hypa::Application; end
     end
 
     after do

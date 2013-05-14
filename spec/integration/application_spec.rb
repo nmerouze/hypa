@@ -1,16 +1,16 @@
 require 'spec_helper'
 require 'rack/test'
 
-class MockApp < Hypa::Application
+class IntegrationApp < Hypa::Application
 end
 
-MockApp.resource :post, '/posts/:id'
+IntegrationApp.resource :post, '/posts/:id'
 
 describe Hypa::Application do
   include Rack::Test::Methods
 
   def app
-    MockApp
+    IntegrationApp
   end
 
   context 'OPTIONS /posts/42' do
