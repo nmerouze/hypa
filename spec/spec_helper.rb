@@ -21,4 +21,32 @@ RSpec.configure do |c|
   c.alias_it_should_behave_like_to :it_has_behavior, 'has behavior:'
 end
 
+shared_examples 'defining actions' do
+  before do
+    @action = Hypa::Action.new
+    Hypa::Action.stub(:new).and_return(@action)
+    expect(subject.actions).to eq([])
+  end
+
+  it 'stores a get action' do
+    subject.get(:self) {}
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a post action' do
+    subject.post(:create) {}
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a patch action' do
+    subject.patch(:create) {}
+    expect(subject.actions).to eq([@action])
+  end
+
+  it 'stores a delete action' do
+    subject.delete(:create) {}
+    expect(subject.actions).to eq([@action])
+  end
+end
+
 require File.expand_path('../../lib/hypa', __FILE__)
