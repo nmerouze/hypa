@@ -1,5 +1,5 @@
 require 'sinatra/base'
-require 'multi_json'
+require 'json'
 require 'extlib/class'
 
 class Hypa::Application < Sinatra::Base
@@ -14,7 +14,7 @@ class Hypa::Application < Sinatra::Base
     self.resources[name] = Hypa::Resource.new(name: :post, href: path, &block)
 
     route 'OPTIONS', path, {} do
-      MultiJson.dump(self.resources[name].to_hash, mode: :compat)
+      JSON.dump(self.resources[name].to_hash)
     end
 
     self.resources[name]

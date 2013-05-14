@@ -3,6 +3,8 @@ PATH
   specs:
     hypa (0.1.0)
       extlib
+      json
+      sinatra
       virtus
 
 GEM
@@ -11,6 +13,7 @@ GEM
     backports (2.6.7)
     descendants_tracker (0.0.1)
     extlib (0.9.16)
+    json (1.7.7)
     multi_json (1.7.3)
     oj (2.0.12)
     puma (2.0.1)

@@ -23,7 +23,7 @@ describe Hypa::Application do
     end
 
     it 'returns the resource serialization' do
-      body = MultiJson.load(last_response.body)
+      body = JSON.load(last_response.body)
       expect(body).to eq({"resources"=>{"post"=>{"properties"=>[]}}, "actions"=>[]})
     end
   end

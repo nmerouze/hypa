@@ -3,7 +3,7 @@ PATH
   specs:
     hypa (0.1.0)
       extlib
-      multi_json
+      json
       sinatra
       virtus
 
@@ -33,6 +33,7 @@ GEM
     guard-rspec (3.0.0)
       guard (>= 1.8)
       rspec (~> 2.13)
+    json (1.7.7)
     listen (1.1.0)
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
@@ -41,7 +42,6 @@ GEM
     method_source (0.8.1)
     mime-types (1.23)
     multi_json (1.7.2)
-    oj (2.0.12)
     pry (0.9.12.2)
       coderay (~> 1.0.5)
       method_source (~> 0.8)
@@ -89,7 +89,6 @@ DEPENDENCIES
   coveralls
   guard-rspec
   hypa!
-  oj
   rack-test
   rake
   rspec
