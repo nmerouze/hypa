@@ -2,9 +2,12 @@ class Hypa::Resource
   include Virtus
   include Hypa::Actions
 
+  attribute :name, Symbol
+  attribute :href, String
   attribute :_properties, Array, writer: :private, default: []
 
-  def initialize(&block)
+  def initialize(attributes = {}, &block)
+    super(attributes)
     (block.arity == 1 ? yield(self) : instance_eval(&block)) if block_given?
   end
 
@@ -13,6 +16,6 @@ class Hypa::Resource
   end
 
   def to_hash
-    { properties: self.properties, actions: actions.map { |a| a.to_hash } }
+    { resources: { self.name => { properties: self.properties } }, actions: actions.map { |a| a.to_hash } }
   end
 end
