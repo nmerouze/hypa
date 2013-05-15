@@ -15,7 +15,7 @@ describe Hypa::Collection do
 
   describe '#to_hash' do
     it 'serializes the object' do
-      expect(collection.to_hash).to eq({ resource: nil, actions: [] })
+      expect(collection.to_hash).to eq({ actions: [] })
     end
   end
 end

@@ -4,8 +4,9 @@ class Hypa::Collection
 
   attribute :_resource, Hypa::Resource, writer: :private
 
-  def initialize(&block)
-    instance_eval(&block) if block_given?
+  def initialize(attributes = {}, &block)
+    super(attributes)
+    (block.arity == 1 ? yield(self) : instance_eval(&block)) if block_given?
   end
 
   def resource(resource = nil)
@@ -13,6 +14,6 @@ class Hypa::Collection
   end
 
   def to_hash
-    { resource: (self.resource ? self.resource.to_hash : nil), actions: actions.map { |a| a.to_hash } }
+    { actions: actions.map { |a| a.to_hash } }.merge((self.resource ? self.resource.to_hash : {}))
   end
 end
