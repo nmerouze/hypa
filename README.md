@@ -4,7 +4,7 @@
 
 # Proof-of-concept
 
-The framework right now just serializes a given representation, you still need to hook up this representation to another web framework manually (like sinatra, see examples/sinatra/). This project is just a few days old, it will evolves to something more automated in the future. I like the DSL from [Weasel Diesel](https://github.com/mattetti/Weasel-Diesel), that's why it looks like it.
+The framework right now just serializes a given representation and wrap it in an OPTIONS action in a Sinatra app. This project is really young, it will evolves to something more automated in the future. I like the DSL from [Weasel Diesel](https://github.com/mattetti/Weasel-Diesel), that's why it looks like it.
 
 # List of Hypermedia content types
 

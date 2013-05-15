@@ -14,8 +14,6 @@ GEM
     descendants_tracker (0.0.1)
     extlib (0.9.16)
     json (1.7.7)
-    multi_json (1.7.3)
-    oj (2.0.12)
     puma (2.0.1)
       rack (>= 1.1, < 2.0)
     rack (1.5.2)
@@ -35,7 +33,4 @@ PLATFORMS
 
 DEPENDENCIES
   hypa!
-  multi_json
-  oj
   puma
-  sinatra

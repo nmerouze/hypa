@@ -1,3 +1,5 @@
+require 'extlib/hash'
+
 class Hypa::Collection
   include Virtus
   include Hypa::Actions
@@ -14,6 +16,6 @@ class Hypa::Collection
   end
 
   def to_hash
-    { actions: actions.map { |a| a.to_hash } }.merge((self.resource ? self.resource.to_hash : {}))
+    { actions: actions.map { |a| a.to_hash } }.merge(self.resource ? self.resource.to_hash.only(:resources) : {})
   end
 end
