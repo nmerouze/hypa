@@ -13,7 +13,7 @@ describe 'A resource' do
   end
 
   let(:template) { Hypa::Template.new }
-  let(:action) { resource.actions.first }
+  let(:action) { resource.actions[:self] }
   let(:response) { action.responses[200] }
 
   before do

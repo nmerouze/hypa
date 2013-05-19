@@ -1,6 +1,6 @@
 module Hypa::Actions
   include Virtus
-  attribute :actions, Array[Hypa::Action]
+  attribute :actions, Hash[Symbol => Hypa::Action]
 
   def get(name, &block)
     action(name, 'GET', &block)
@@ -21,6 +21,6 @@ module Hypa::Actions
   private
 
   def action(name, method, &block)
-    self.actions << Hypa::Action.new(name: name, method: method, &block)
+    self.actions[name] = Hypa::Action.new(name: name, method: method, &block)
   end
 end

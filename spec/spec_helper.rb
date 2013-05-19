@@ -25,27 +25,27 @@ shared_examples 'defining actions' do
   before do
     @action = Hypa::Action.new
     Hypa::Action.stub(:new).and_return(@action)
-    expect(subject.actions).to eq([])
+    expect(subject.actions).to eq({})
   end
 
   it 'stores a get action' do
     subject.get(:self) {}
-    expect(subject.actions).to eq([@action])
+    expect(subject.actions).to eq({ :self => @action })
   end
 
   it 'stores a post action' do
     subject.post(:create) {}
-    expect(subject.actions).to eq([@action])
+    expect(subject.actions).to eq({ :create => @action })
   end
 
   it 'stores a patch action' do
-    subject.patch(:create) {}
-    expect(subject.actions).to eq([@action])
+    subject.patch(:update) {}
+    expect(subject.actions).to eq({ :update => @action })
   end
 
   it 'stores a delete action' do
-    subject.delete(:create) {}
-    expect(subject.actions).to eq([@action])
+    subject.delete(:delete) {}
+    expect(subject.actions).to eq({ :delete => @action })
   end
 end
 
