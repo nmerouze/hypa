@@ -4,6 +4,8 @@ class Hypa::Collection
   include Virtus
   include Hypa::Actions
 
+  attribute :name, Symbol
+  attribute :href, String
   attribute :_resource, Hypa::Resource, writer: :private
 
   def initialize(attributes = {}, &block)
@@ -16,6 +18,6 @@ class Hypa::Collection
   end
 
   def to_hash
-    { actions: actions.map { |a| a.to_hash } }.merge(self.resource ? self.resource.to_hash.only(:resources) : {})
+    { name: self.name, href: self.href, actions: actions.map { |a| a.to_hash } }.merge(self.resource ? self.resource.to_hash.only(:resources) : {})
   end
 end

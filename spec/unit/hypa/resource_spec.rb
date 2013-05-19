@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+Constant = Class.new
+
 describe Hypa::Resource do
   let(:resource) { described_class.new }
   subject { resource }
@@ -16,6 +18,12 @@ describe Hypa::Resource do
     expect(resource.href).to eq('/posts/:id')
   end
 
+  it 'stores a model' do
+    expect(resource.model).to be_nil
+    resource.model Constant
+    expect(resource.model).to eq(Constant)
+  end
+
   it 'stores properties' do
     expect(resource.properties).to eq([])
     resource.properties(:id, :title)
@@ -27,8 +35,11 @@ describe Hypa::Resource do
   describe '#to_hash' do
     it 'serializes the object' do
       resource.name = :post
+      resource.href = '/posts/{id}'
       resource.properties(:id, :title)
       expect(resource.to_hash).to eq({
+        name: :post,
+        href: '/posts/{id}',
         resources: { post: { properties: [:id, :title] } },
         actions: []
       })

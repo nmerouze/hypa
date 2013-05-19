@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Hypa::Collection do
-  let(:collection) { described_class.new }
+  let(:collection) { described_class.new(name: :posts, href: '/posts') }
   subject { collection }
 
   it 'stores resource' do
@@ -15,7 +15,7 @@ describe Hypa::Collection do
 
   describe '#to_hash' do
     it 'serializes the object' do
-      expect(collection.to_hash).to eq({ actions: [] })
+      expect(collection.to_hash).to eq({ name: :posts, href: '/posts', actions: [] })
     end
   end
 end

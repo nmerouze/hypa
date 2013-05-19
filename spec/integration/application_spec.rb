@@ -25,7 +25,7 @@ describe Hypa::Application do
 
     it 'returns the collection serialization' do
       body = JSON.load(last_response.body)
-      expect(body).to eq({"actions"=>[]})
+      expect(body).to eq({"name"=>"posts", "href"=>"/posts", "actions"=>[]})
     end
   end
 
@@ -40,7 +40,7 @@ describe Hypa::Application do
 
     it 'returns the resource serialization' do
       body = JSON.load(last_response.body)
-      expect(body).to eq({"resources"=>{"post"=>{"properties"=>[]}}, "actions"=>[]})
+      expect(body).to eq({"name"=>"post", "href"=>"/posts/:id", "resources"=>{"post"=>{"properties"=>[]}}, "actions"=>[]})
     end
   end
 end

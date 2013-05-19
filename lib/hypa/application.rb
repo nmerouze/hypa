@@ -23,7 +23,7 @@ class Hypa::Application < Sinatra::Base
   end
 
   def self.collection(name, path, &block)
-    self.collections[name] = Hypa::Collection.new(name: :post, href: path, &block)
+    self.collections[name] = Hypa::Collection.new(name: name, href: path, &block)
 
     route 'OPTIONS', path, {} do
       JSON.dump(self.collections[name].to_hash)

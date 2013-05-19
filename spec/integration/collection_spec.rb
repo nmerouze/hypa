@@ -20,7 +20,7 @@ describe 'A collection' do
 
   let(:template) { Hypa::Template.new }
   let(:action) { collection.actions.first }
-  let(:response) { action.responses.first }
+  let(:response) { action.responses[200] }
 
   before do
     Hypa::Template.stub(:new).and_return(template)

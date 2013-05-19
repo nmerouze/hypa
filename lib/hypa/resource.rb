@@ -15,7 +15,11 @@ class Hypa::Resource
     properties.empty? ? self._properties : self._properties = properties
   end
 
+  def model(model = nil)
+    model.nil? ? @model : @model = model
+  end
+
   def to_hash
-    { resources: { self.name => { properties: self.properties } }, actions: actions.map { |a| a.to_hash } }
+    { name: self.name, href: self.href, resources: { self.name => { properties: self.properties } }, actions: actions.map { |a| a.to_hash } }
   end
 end

@@ -3,7 +3,7 @@ class Hypa::Action
   attribute :name, Symbol
   attribute :method, String
   attribute :_parameters, Array, writer: :private, default: [] # FIX: accessor: :private doesn't work
-  attribute :responses, Array[Hypa::Response]
+  attribute :responses, Hash[Integer => Hypa::Response]
 
   def initialize(attributes = {}, &block)
     super(attributes)
@@ -15,10 +15,10 @@ class Hypa::Action
   end
 
   def response(status, template)
-    self.responses << Hypa::Response.new(status: 200, template: template)
+    self.responses[status] = Hypa::Response.new(status: 200, template: template)
   end
 
   def to_hash
-    { name: self.name, method: self.method, params: self.params, responses: responses.map { |r| r.to_hash } }
+    { name: self.name, method: self.method, params: self.params, responses: responses.map { |s,r| r.to_hash } }
   end
 end

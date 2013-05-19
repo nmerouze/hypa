@@ -25,9 +25,9 @@ describe Hypa::Action do
     response = Hypa::Response.new(status: 200, template: Hypa::Template.new)
     Hypa::Response.stub(:new).and_return(response)
 
-    expect(action.responses).to eq([])
+    expect(action.responses).to eq({})
     action.response(200, Hypa::Template.new)
-    expect(action.responses).to eq([response])
+    expect(action.responses).to eq({ 200 => response })
   end
 
   describe '#to_hash' do
