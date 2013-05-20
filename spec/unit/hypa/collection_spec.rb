@@ -18,4 +18,20 @@ describe Hypa::Collection do
       expect(collection.to_hash).to eq({ name: :posts, href: '/posts', actions: [] })
     end
   end
+
+  # describe '#render' do
+  #   before do
+  #     post = double('Post', all: [{ id: 1, title: 'Foobar' }])
+  #     resource = double('Hypa::Resource', properties: [:id, :title], model: post, to_hash: {})
+  #     collection.resource(resource)
+  #     collection.get :self do |a|
+  #       a.response 200, Hypa::CollectionTemplate.new(collection)
+  #     end
+  #   end
+
+  #   it 'renders an action\'s response' do
+  #     result = collection.render(:self)
+  #     expect(result).to eq([{ id: 1, title: 'Foobar' }])
+  #   end
+  # end
 end

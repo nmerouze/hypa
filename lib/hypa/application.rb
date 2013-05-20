@@ -23,10 +23,17 @@ class Hypa::Application < Sinatra::Base
   end
 
   def self.collection(name, path, &block)
-    self.collections[name] = Hypa::Collection.new(name: name, href: path, &block)
+    collection = self.collections[name] = Hypa::Collection.new(name: name, href: path, &block)
 
     route 'OPTIONS', path, {} do
-      JSON.dump(self.collections[name].to_hash)
+      JSON.dump(collection.to_hash)
+    end
+
+    collection.actions.each do |action_name, action|
+      route action.method, path, {} do
+        data = collection.resource.model.all # TODO: Just for GET routes, with filter depending on params
+        JSON.dump(name => action.responses[200].render(data.map(&:values)))
+      end
     end
 
     self.collections[name]

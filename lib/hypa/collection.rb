@@ -18,6 +18,11 @@ class Hypa::Collection
   end
 
   def to_hash
-    { name: self.name, href: self.href, actions: actions.map { |a| a.to_hash } }.merge(self.resource ? self.resource.to_hash.only(:resources) : {})
+    { name: self.name, href: self.href, actions: actions.map { |v,a| a.to_hash } }.merge(self.resource ? self.resource.to_hash.only(:resources) : {})
   end
+
+  # def render(action)
+  #   data = self.resource.model.all
+  #   self.actions[action].responses[200].render(data.map(&:values))
+  # end
 end

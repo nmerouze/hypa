@@ -27,4 +27,11 @@ describe Hypa::CollectionTemplate do
       items: { properties: [:id, :title] }
     })
   end
+
+  describe '#render' do
+    it 'renders the template' do
+      result = @template.render([{ id: 1, title: 'Foobar', not_in_resource: 'Test' }])
+      expect(result).to eq([{ id: 1, title: 'Foobar' }])
+    end
+  end
 end

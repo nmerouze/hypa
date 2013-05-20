@@ -22,4 +22,19 @@ describe Hypa::Response do
       expect(response.to_hash).to eq({ status: 200, template: nil })
     end
   end
+
+  describe '#render' do
+    context 'with a collection template' do
+      before do
+        resource = double('Hypa::Resource', properties: [:id, :title])
+        collection = double('Hypa::Collection', resource: resource)
+        response.template = Hypa::CollectionTemplate.new(collection)
+      end
+
+      it 'renders the template' do
+        result = response.render([{ id: 1, title: 'Foobar', not_in_resource: 'Test' }])
+        expect(result).to eq([{ id: 1, title: 'Foobar' }])
+      end
+    end
+  end
 end

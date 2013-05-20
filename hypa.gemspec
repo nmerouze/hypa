@@ -21,7 +21,9 @@ Gem::Specification.new do |s|
   s.add_dependency 'extlib'
   s.add_dependency 'sinatra'
   s.add_dependency 'json'
+  s.add_dependency 'sequel'
 
+  s.add_development_dependency 'sqlite3'
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'rack-test'
   s.add_development_dependency 'rake'

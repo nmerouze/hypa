@@ -6,4 +6,8 @@ class Hypa::Response
   def to_hash
     { status: self.status, template: (self.template ? self.template.to_hash : nil) }
   end
+
+  def render(data)
+    self.template.render(data)
+  end
 end

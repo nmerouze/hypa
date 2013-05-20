@@ -22,4 +22,8 @@ class Hypa::CollectionTemplate < Hypa::Template
   def to_hash
     { type: 'array', items: { properties: @collection.resource.properties } }
   end
+
+  def render(data)
+    data.map { |item| item.only(*@collection.resource.properties) }
+  end
 end

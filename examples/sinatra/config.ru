@@ -1,8 +1,22 @@
 require 'bundler/setup'
 require 'hypa'
+require 'sequel'
+
+DB = Sequel.sqlite
+
+DB.create_table :posts do
+  primary_key :id
+  String :title
+end
+
+DB.from(:posts).insert(title: 'HypaMedia')
+
+class Post < Sequel::Model
+end
 
 Hypa::Application.resource :post, '/posts/:id' do |r|
   r.properties :id, :title
+  r.model Post
 
   r.get :self do |a|
     a.params :id

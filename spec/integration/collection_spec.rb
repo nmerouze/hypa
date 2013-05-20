@@ -1,30 +1,39 @@
 require 'spec_helper'
+require 'sequel'
 
-PostResource = Hypa::Resource.new do
-  properties :id, :title
+DB = Sequel.sqlite
+
+DB.create_table :posts do
+  primary_key :id
+  String :title
+end
+
+DB.from(:posts).insert(title: 'HypaMedia')
+
+class Post < Sequel::Model
+end
+
+PostResource = Hypa::Resource.new do |r|
+  r.properties :id, :title
+  r.model Post
 end
 
 describe 'A collection' do
   let(:resource) { PostResource }
 
   let :collection do
-    Hypa::Collection.new do
-      resource PostResource
+    Hypa::Collection.new do |c|
+      c.resource PostResource
 
-      get :self do
-        params :title_in
-        response 200, Hypa::Template.new
+      c.get :self do |a|
+        a.params :title_in
+        a.response 200, Hypa::CollectionTemplate.new(c)
       end
     end
   end
 
-  let(:template) { Hypa::Template.new }
   let(:action) { collection.actions[:self] }
   let(:response) { action.responses[200] }
-
-  before do
-    Hypa::Template.stub(:new).and_return(template)
-  end
 
   it 'defines an action' do
     expect(collection.actions.size).to eq(1)
@@ -35,10 +44,14 @@ describe 'A collection' do
     expect(action.responses.size).to eq(1)
 
     expect(response.status).to eq(200)
-    expect(response.template).to eq(template)
   end
 
   it 'defines a resource' do
     expect(collection.resource).to eq(resource)
+  end
+
+  it 'renders an action\'s response' do
+    result = collection.actions[:self].responses[200].render(collection.resource.model.all.map(&:values))
+    expect(result).to eq([{ id: 1, title: 'HypaMedia' }])
   end
 end
