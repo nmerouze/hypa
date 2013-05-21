@@ -5,8 +5,6 @@ require 'extlib/hash'
 require 'extlib/module'
 require 'extlib/string'
 
-# TODO: responses/templates
-
 module Hypa
 end
 
@@ -29,7 +27,7 @@ class Hypa::Resource
     end
 
     def to_hash
-      name = self.name.snake_case.split('_')[0..-2].join('_').to_sym
+      name = self.name.split('::').last.snake_case.split('_')[0..-2].join('_').to_sym
 
       hash = { name: name }
       hash[:resources] = { name => {  attributes: self._attributes } } unless self._attributes.empty?
@@ -49,7 +47,7 @@ class Hypa::Collection
   class << self
 
     def resource(class_name)
-      self._resource = Object.find_const("#{class_name.to_s.camel_case}Resource")
+      self._resource = self.find_const("#{class_name.to_s.camel_case}Resource")
     end
 
     def actions(*actions)
@@ -59,7 +57,7 @@ class Hypa::Collection
     end
 
     def to_hash
-      name = self.name.snake_case.split('_')[0..-2].join('_').to_sym
+      name = self.name.split('::').last.snake_case.split('_')[0..-2].join('_').to_sym
 
       hash = { name: name }
       hash.merge!(self._resource.to_hash.only(:resources)) if self._resource
@@ -71,18 +69,14 @@ class Hypa::Collection
   end
 end
 
-class Hypa::Template
-
-end
-
 class Hypa::Action
   class_inheritable_accessor :_name
   class_inheritable_accessor :_method
   class_inheritable_accessor :_href
   class_inheritable_accessor :_parameters
   self._parameters = []
-  # class_inheritable_accessor :_responses
-  # self._responses = {}
+  class_inheritable_accessor :_responses
+  self._responses = {}
 
   class << self
 
@@ -98,17 +92,18 @@ class Hypa::Action
       self._parameters = parameters
     end
 
-    # def response(status, &block)
-    #   self._responses[status] = block
-    # end
+    def response(status, response)
+      self._responses[status] = response
+    end
 
     def to_hash
       hash = {}
       hash[:name] = self._name if self._name
       hash[:method] = self._method if self._method
       hash[:href] = self._href if self._href
-      # hash[:responses] = self._responses unless self._responses.empty?
       hash[:params] = self._parameters unless self._parameters.empty?
+      hash[:responses] = {} unless self._responses.empty?
+      self._responses.each { |k,v| hash[:responses][k] = v }
       hash
     end
 

@@ -98,18 +98,14 @@ describe Hypa::Action, '.params' do
   end
 end
 
-# describe Hypa::Template do
+describe Hypa::Action, '.response' do
+  let(:action) { Class.new(described_class) }
 
-# end
+  it 'defines response' do
+    action.response 200, type: 'array', items: { '$ref' => '#/resources/post' }
 
-# describe Hypa::Action, '.response' do
-#   let(:action) { Class.new(described_class) }
-
-#   it 'defines response' do
-#     action.response 200, :collection
-
-#     expect(action.to_hash).to eq({
-#       responses: { 200 => 'Foobar' }
-#     })
-#   end
-# end
+    expect(action.to_hash).to eq({
+      responses: { 200 => { type: 'array', items: { '$ref' => '#/resources/post' } } }
+    })
+  end
+end

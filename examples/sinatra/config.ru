@@ -20,24 +20,33 @@ class MyApp < Sinatra::Base
   options '/posts' do
     JSON.dump(PostsCollection.to_hash)
   end
+
+  options '/posts/:id' do
+    JSON.dump(PostResource.to_hash)
+  end
 end
 
 class MyApp::PostResource < Hypa::Resource
-  attributes :id, :title
-  actions :self
-
   class SelfAction < Hypa::Action
     get :self => '/posts/:id'
+
+    response 200, type: 'array', items: { '$ref' => '#/resources/post' }
+    response 404, status: 'Not found', message: 'This post is missing.'
   end
+
+  attributes :id, :title
+  actions :self
 end
 
 class MyApp::PostsCollection < Hypa::Collection
-  resource :post
-  actions :self
-
   class SelfAction < Hypa::Action
     get :self => '/posts'
+
+    response 200, type: 'array', items: { '$ref' => '#/resources/post' }
   end
+
+  resource :post
+  actions :self
 end
 
 run MyApp
