@@ -17,7 +17,6 @@ Gem::Specification.new do |s|
   s.require_path          = 'lib'
   s.required_ruby_version = '>= 1.9.3'
 
-  s.add_dependency 'virtus'
   s.add_dependency 'extlib'
   s.add_dependency 'sinatra'
   s.add_dependency 'json'

@@ -1,18 +1,15 @@
 PATH
   remote: ../../
   specs:
-    hypa (0.1.0)
+    hypa (0.1.1)
       extlib
       json
       sequel
       sinatra
-      virtus
 
 GEM
   remote: https://rubygems.org/
   specs:
-    backports (2.6.7)
-    descendants_tracker (0.0.1)
     extlib (0.9.16)
     json (1.7.7)
     puma (2.0.1)
@@ -27,9 +24,6 @@ GEM
       tilt (~> 1.3, >= 1.3.4)
     sqlite3 (1.3.7)
     tilt (1.4.1)
-    virtus (0.5.4)
-      backports (~> 2.6.1)
-      descendants_tracker (~> 0.0.1)
 
 PLATFORMS
   ruby

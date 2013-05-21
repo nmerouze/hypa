@@ -1,35 +1,43 @@
 require 'bundler/setup'
 require 'hypa'
-require 'sequel'
+require 'sinatra/base'
+require 'json'
+# require 'sequel'
 
-DB = Sequel.sqlite
+# DB = Sequel.sqlite
 
-DB.create_table :posts do
-  primary_key :id
-  String :title
-end
+# DB.create_table :posts do
+#   primary_key :id
+#   String :title
+# end
 
-DB.from(:posts).insert(title: 'HypaMedia')
+# DB.from(:posts).insert(title: 'HypaMedia')
 
-class Post < Sequel::Model
-end
+# class Post < Sequel::Model
+# end
 
-Hypa::Application.resource :post, '/posts/:id' do |r|
-  r.properties :id, :title
-  r.model Post
-
-  r.get :self do |a|
-    a.params :id
-    a.response 200, Hypa::ResourceTemplate.new(r)
+class MyApp < Sinatra::Base
+  options '/posts' do
+    JSON.dump(PostsCollection.to_hash)
   end
 end
 
-Hypa::Application.collection :posts, '/posts' do |c|
-  c.resource Hypa::Application.resources[:post]
+class MyApp::PostResource < Hypa::Resource
+  attributes :id, :title
+  actions :self
 
-  c.get :self do |a|
-    a.response 200, Hypa::CollectionTemplate.new(c)
+  class SelfAction < Hypa::Action
+    get :self => '/posts/:id'
   end
 end
 
-run Hypa::Application
+class MyApp::PostsCollection < Hypa::Collection
+  resource :post
+  actions :self
+
+  class SelfAction < Hypa::Action
+    get :self => '/posts'
+  end
+end
+
+run MyApp
