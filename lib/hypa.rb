@@ -27,13 +27,15 @@ class Hypa::Resource
     end
 
     def to_hash
-      name = self.name.split('::').last.snake_case.split('_')[0..-2].join('_').to_sym
-
-      hash = { name: name }
-      hash[:resources] = { name => {  attributes: self._attributes } } unless self._attributes.empty?
+      hash = { name: human_name }
+      hash[:resources] = { human_name => {  attributes: self._attributes } } unless self._attributes.empty?
       hash[:actions] = {} unless self._actions.empty?
       self._actions.each { |k,v| hash[:actions][k] = v.to_hash }
       hash
+    end
+
+    def human_name
+      self.name.split('::').last.snake_case.split('_')[0..-2].join('_').to_sym
     end
 
   end
@@ -69,6 +71,50 @@ class Hypa::Collection
   end
 end
 
+class Hypa::Template
+  def initialize(hash)
+    @hash = hash
+  end
+
+  def render
+    to_hash
+  end
+
+  def to_hash
+    @hash
+  end
+end
+
+class Hypa::ResourceTemplate
+  def initialize(resource)
+    @resource = resource
+  end
+
+  def render(data)
+    data.map { |item| item.only(*@resource._attributes) }
+  end
+
+  def to_hash
+    ref = "#/resources/#{@resource.human_name}"
+    { type: 'array', items: { '$ref' => ref } }
+  end
+end
+
+class Hypa::CollectionTemplate
+  def initialize(collection)
+    @collection = collection
+  end
+
+  def render(data)
+    data.map { |item| item.only(*@collection._resource._attributes) }
+  end
+
+  def to_hash
+    ref = "#/resources/#{@collection._resource.human_name}"
+    { type: 'array', items: { '$ref' => ref } }
+  end
+end
+
 class Hypa::Action
   class_inheritable_accessor :_name
   class_inheritable_accessor :_method
@@ -92,8 +138,8 @@ class Hypa::Action
       self._parameters = parameters
     end
 
-    def response(status, response)
-      self._responses[status] = response
+    def response(status, template)
+      self._responses[status] = template.is_a?(Hash) ? Hypa::Template.new(template) : template
     end
 
     def to_hash
@@ -103,7 +149,7 @@ class Hypa::Action
       hash[:href] = self._href if self._href
       hash[:params] = self._parameters unless self._parameters.empty?
       hash[:responses] = {} unless self._responses.empty?
-      self._responses.each { |k,v| hash[:responses][k] = v }
+      self._responses.each { |k,v| hash[:responses][k] = v.to_hash }
       hash
     end
 

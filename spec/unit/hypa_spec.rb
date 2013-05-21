@@ -102,10 +102,37 @@ describe Hypa::Action, '.response' do
   let(:action) { Class.new(described_class) }
 
   it 'defines response' do
-    action.response 200, type: 'array', items: { '$ref' => '#/resources/post' }
+    action.response 404, status: 'Not found', message: 'Post not found.'
 
     expect(action.to_hash).to eq({
-      responses: { 200 => { type: 'array', items: { '$ref' => '#/resources/post' } } }
+      responses: { 404 => { status: 'Not found', message: 'Post not found.' } }
     })
+  end
+end
+
+describe Hypa::Template, '#render' do
+  let(:template) { described_class.new(status: 'Not found', message: 'Post not found.') }
+
+  it 'renders template' do
+    expect(template.render).to eq(status: 'Not found', message: 'Post not found.')
+  end
+end
+
+describe Hypa::ResourceTemplate, '#to_hash' do
+  let(:resource) { stub_const('PostResource', Class.new(Hypa::Resource)) }
+  let(:template) { described_class.new(resource) }
+
+  it 'renders template of the resource' do
+    expect(template.to_hash).to eq(type: 'array', items: { '$ref' => '#/resources/post' })
+  end
+end
+
+describe Hypa::ResourceTemplate, '#render' do
+  let(:resource) { stub_const('PostResource', Class.new(Hypa::Resource) { attributes :id, :title }) }
+  let(:template) { described_class.new(resource) }
+  let(:data) { [{ id: 1, title: 'Foobar', fake_attribute: 'Fake' }] }
+
+  it 'renders data' do
+    expect(template.render(data)).to eq([{ id: 1, title: 'Foobar' }])
   end
 end
