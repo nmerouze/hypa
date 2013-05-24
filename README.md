@@ -4,7 +4,7 @@
 
 # Proof-of-concept
 
-The framework right now just serializes a given representation and wrap it in an OPTIONS action in a Sinatra app. This project is really young, it will evolves to something more automated in the future. I like the DSL from [Weasel Diesel](https://github.com/mattetti/Weasel-Diesel), that's why it looks like it.
+I'm quickly iterating over different systems and syntaxes. So right now this is just a playground.
 
 # List of Hypermedia content types
 

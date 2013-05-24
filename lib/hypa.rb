@@ -1,14 +1,33 @@
 # encoding: utf-8
-require 'bundler/setup'
-require 'virtus'
+require 'active_support/core_ext/class/attribute'
+require 'active_model/array_serializer'
 
 module Hypa
-end
+  class Resource
+    class_attribute :_actions
+    # class_inheritable_accessor :links
+    # self.links = {}
+    # TODO: ALLOWED_ACTIONS = [:get, ...]
 
-require_relative 'hypa/template'
-require_relative 'hypa/response'
-require_relative 'hypa/action'
-require_relative 'hypa/actions'
-require_relative 'hypa/resource'
-require_relative 'hypa/collection'
-require_relative 'hypa/application'
+    class << self
+      def actions(*actions)
+        self._actions = actions
+      end
+
+      def action(name)
+        method(name).call
+      end
+
+      def query(&block)
+        @query = block
+      end
+
+      def get
+        ActiveModel::ArraySerializer.new(@query.call, root: self.name.underscore.split('_').first).to_json
+      end
+    end
+  end
+
+  class Collection < Resource
+  end
+end
