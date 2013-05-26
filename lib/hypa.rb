@@ -12,7 +12,7 @@ module Hypa
     end
 
     module ClassMethods
-      ALLOWED_ACTIONS = [:get, :options]
+      ALLOWED_ACTIONS = [:get]
 
       def actions(*actions)
         self._actions = actions
@@ -21,6 +21,10 @@ module Hypa
       def action(name, params = {})
         ALLOWED_ACTIONS.include?(name) && self._actions.include?(name) ? method(name).call(params) : raise(NoActionError)
       end
+
+      # def options(env)
+      #   env.response.headers['Allow'] = self._actions.map { |a| a.to_s.upcase }.join(',')
+      # end
     end
 
     class NoActionError < Exception
@@ -41,10 +45,6 @@ module Hypa
 
       def get(params = {})
         ActiveModel::ArraySerializer.new([model_class.find(params[:id])], root: resource_name.pluralize.underscore, each_serializer: self).to_json
-      end
-
-      def options(params = {})
-        self.schema.to_json
       end
     end
   end
@@ -67,10 +67,6 @@ module Hypa
 
       def get(params = {})
         ActiveModel::ArraySerializer.new(query, root: collection_name.underscore, each_serializer: resource_class).to_json
-      end
-
-      def options(params = {})
-        resource_class.schema.to_json
       end
     end
   end

@@ -2,11 +2,11 @@ require 'helper'
 
 class PostResource < Hypa::Resource
   attributes :title
-  actions :get, :options
+  actions :get
 end
 
 class PostsCollection < Hypa::Collection
-  actions :get, :options
+  actions :get
 end
 
 class MyApp < Sinatra::Base
@@ -14,16 +14,8 @@ class MyApp < Sinatra::Base
     PostsCollection.action(:get)
   end
 
-  options '/posts' do
-    PostsCollection.action(:options)
-  end
-
   get '/posts/:id' do
     PostResource.action(:get, params)
-  end
-
-  options '/posts/:id' do
-    PostResource.action(:options)
   end
 end
 
@@ -38,13 +30,6 @@ describe Hypa::Resource do
       last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
     end
   end
-
-  describe 'OPTIONS /posts/:id' do
-    it 'renders post schema' do
-      options '/posts/1'
-      last_response.body.must_equal('{"attributes":{"title":"string"},"associations":{}}')
-    end
-  end
 end
 
 describe Hypa::Collection do
@@ -56,13 +41,6 @@ describe Hypa::Collection do
     it 'renders posts' do
       get '/posts'
       last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
-    end
-  end
-
-  describe 'OPTIONS /posts' do
-    it 'renders post schema' do
-      options '/posts'
-      last_response.body.must_equal('{"attributes":{"title":"string"},"associations":{}}')
     end
   end
 end
