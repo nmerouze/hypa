@@ -12,7 +12,7 @@ module Hypa
     end
 
     module ClassMethods
-      ALLOWED_ACTIONS = [:get]
+      ALLOWED_ACTIONS = [:get, :delete]
 
       def actions(*actions)
         self._actions = actions
@@ -45,6 +45,10 @@ module Hypa
 
       def get(params = {})
         ActiveModel::ArraySerializer.new([model_class.find(params[:id])], root: resource_name.pluralize.underscore, each_serializer: self).to_json
+      end
+
+      def delete(params = {})
+        model_class.find(params[:id]).destroy
       end
     end
   end

@@ -43,4 +43,7 @@ end
 class Post < ActiveRecord::Base
 end
 
-Post.create(title: 'Foobar')
+class MiniTest::Spec
+  before { @post = Post.create(title: 'Foobar') }
+  after { Post.delete_all }
+end

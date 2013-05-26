@@ -2,7 +2,7 @@ require 'helper'
 
 class PostResource < Hypa::Resource
   attributes :title
-  actions :get
+  actions :get, :delete
 end
 
 class PostsCollection < Hypa::Collection
@@ -17,6 +17,10 @@ class MyApp < Sinatra::Base
   get '/posts/:id' do
     PostResource.action(:get, params)
   end
+
+  delete '/posts/:id' do
+    PostResource.action(:delete, params)
+  end
 end
 
 describe Hypa::Resource do
@@ -26,8 +30,15 @@ describe Hypa::Resource do
 
   describe 'GET /posts/:id' do
     it 'renders a post' do
-      get '/posts/1'
+      get "/posts/#{@post.id}"
       last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    end
+  end
+
+  describe 'DELETE /posts/:id' do
+    it 'deletes a post' do
+      delete "/posts/#{@post.id}"
+      Post.find_by_id(@post.id).must_equal nil
     end
   end
 end
