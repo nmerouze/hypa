@@ -4,17 +4,53 @@ require 'active_model/array_serializer'
 require 'active_model/serializer'
 
 module Hypa
+  module Actions    
+    def self.included(base)
+      base.class_attribute :_actions
+      base._actions = []
+      base.send :extend, ClassMethods
+    end
+
+    module ClassMethods
+      ALLOWED_ACTIONS = [:get, :options]
+
+      def actions(*actions)
+        self._actions = actions
+      end
+
+      def action(name, params = {})
+        ALLOWED_ACTIONS.include?(name) && self._actions.include?(name) ? method(name).call(params) : raise(NoActionError)
+      end
+    end
+
+    class NoActionError < Exception
+    end
+  end
+
   class Resource < ActiveModel::Serializer
-    def self.model_class
-      name.sub(/Resource$/, '').constantize
+    include Hypa::Actions
+
+    class << self
+      def resource_name
+        name.sub(/Resource$/, '')
+      end
+
+      def model_class
+        resource_name.constantize
+      end
+
+      def get(params = {})
+        ActiveModel::ArraySerializer.new([model_class.find(params[:id])], root: resource_name.pluralize.underscore, each_serializer: self).to_json
+      end
+
+      def options(params = {})
+        self.schema.to_json
+      end
     end
   end
 
   class Collection
-    class_attribute :_actions
-    # class_inheritable_accessor :links
-    # self.links = {}
-    ALLOWED_ACTIONS = [:get, :options]
+    include Hypa::Actions
 
     class << self
       def collection_name
@@ -25,28 +61,17 @@ module Hypa
         "#{collection_name.singularize}Resource".constantize
       end
 
-      def actions(*actions)
-        self._actions = actions
-      end
-
-      def action(name)
-        ALLOWED_ACTIONS.include?(name) ? method(name).call : NoActionError
-      end
-
       def query
         resource_class.model_class.all
       end
 
-      def get
+      def get(params = {})
         ActiveModel::ArraySerializer.new(query, root: collection_name.underscore, each_serializer: resource_class).to_json
       end
 
-      def options
+      def options(params = {})
         resource_class.schema.to_json
       end
-    end
-
-    class NoActionError < Exception
     end
   end
 end

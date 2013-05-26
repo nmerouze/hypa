@@ -24,6 +24,8 @@ require 'hypa'
 require 'sinatra/base'
 require 'active_record'
 
+ENV['RACK_ENV'] = 'test'
+
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database  => ':memory:')
 
 # ActiveRecord::Migration.create_table :posts do |t|
