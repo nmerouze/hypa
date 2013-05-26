@@ -21,7 +21,7 @@ SimpleCov.start do
 end
 
 require 'hypa'
-require 'sinatra'
+require 'sinatra/base'
 require 'active_record'
 require 'active_model/serializer'
 
