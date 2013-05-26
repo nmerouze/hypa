@@ -1,26 +1,20 @@
 require 'helper'
 
-class PostSerializer < ActiveModel::Serializer
+class PostResource < Hypa::Resource
   attributes :title
 end
 
 class PostsCollection < Hypa::Collection
   actions :get, :post, :options
-
-  query { Post.all }
 end
-
-class Post < ActiveRecord::Base
-  def active_model_serializer
-    PostSerializer
-  end
-end
-
-Post.create(title: 'Foobar')
 
 class MyApp < Sinatra::Base
   get '/posts' do
     PostsCollection.action(:get)
+  end
+
+  options '/posts' do
+    PostsCollection.action(:options)
   end
 end
 
@@ -31,8 +25,17 @@ describe Hypa::Collection do
     MyApp
   end
 
-  it 'renders get action' do
-    get '/posts'
-    last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+  describe 'GET /posts' do
+    it 'renders posts' do
+      get '/posts'
+      last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    end
+  end
+
+  describe 'OPTIONS /posts' do
+    it 'renders schema' do
+      options '/posts'
+      last_response.body.must_equal('{"attributes":{"title":"string"},"associations":{}}')
+    end
   end
 end

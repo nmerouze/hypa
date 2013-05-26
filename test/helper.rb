@@ -13,7 +13,7 @@ SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter[
 
 SimpleCov.start do
   project_name 'hypa'
-  minimum_coverage 80
+  # minimum_coverage 80
 
   add_filter '/spec/'
   add_filter '/vendor/'
@@ -23,7 +23,6 @@ end
 require 'hypa'
 require 'sinatra/base'
 require 'active_record'
-require 'active_model/serializer'
 
 ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database  => ':memory:')
 
@@ -38,3 +37,8 @@ ActiveRecord::Schema.define do
   end
 
 end
+
+class Post < ActiveRecord::Base
+end
+
+Post.create(title: 'Foobar')
