@@ -18,8 +18,13 @@ module Hypa
         self._actions = actions
       end
 
-      def action(name, params = {})
-        ALLOWED_ACTIONS.include?(name) && self._actions.include?(name) ? method(name).call(params) : raise(NoActionError)
+      def action(name)
+        if ALLOWED_ACTIONS.include?(name) && self._actions.include?(name)
+          this = self
+          Proc.new { this.method(name).call(env, params) }
+        else
+          raise NoActionError
+        end
       end
 
       # def options(env)
@@ -30,6 +35,12 @@ module Hypa
     class NoActionError < Exception
     end
   end
+
+  # class Response < Rack::Response
+  # end
+
+  # class Request < Rack::Request
+  # end
 
   class Resource < ActiveModel::Serializer
     include Hypa::Actions
@@ -43,12 +54,13 @@ module Hypa
         resource_name.constantize
       end
 
-      def get(params = {})
+      def get(env, params)
         ActiveModel::ArraySerializer.new([model_class.find(params[:id])], root: resource_name.pluralize.underscore, each_serializer: self).to_json
       end
 
-      def delete(params = {})
+      def delete(env, params)
         model_class.find(params[:id]).destroy
+        [204, { 'Content-Length' => 0 }, '']
       end
     end
   end
@@ -69,7 +81,7 @@ module Hypa
         resource_class.model_class.all
       end
 
-      def get(params = {})
+      def get(env, params)
         ActiveModel::ArraySerializer.new(query, root: collection_name.underscore, each_serializer: resource_class).to_json
       end
     end

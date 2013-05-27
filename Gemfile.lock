@@ -59,8 +59,11 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord (~> 3.2.0)
+  activerecord-jdbc-adapter
+  activerecord-jdbcsqlite3-adapter
   coveralls
   hypa!
+  jdbc-sqlite3
   rack-test
   rake
   simplecov
