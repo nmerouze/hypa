@@ -36,6 +36,9 @@ ActiveRecord::Schema.define do
 end
 
 class MiniTest::Spec
-  before { @post = Post.create(title: 'Foobar') }
+  include Rack::Test::Methods
+
+  def app; MyApp; end
+  
   after { Post.delete_all }
 end
