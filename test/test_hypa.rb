@@ -1,5 +1,11 @@
 require 'helper'
 
+# describe Hypa::Middleware do
+#   it 'stores status' do
+
+#   end
+# end
+
 describe Hypa::Resource do
   it 'GET /posts/:id renders a post' do
     post = Post.create(title: 'Foobar')

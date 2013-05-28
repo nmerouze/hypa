@@ -8,7 +8,7 @@ module Hypa
     def self.included(base)
       base.class_attribute :_actions
       base._actions = []
-      base.send :extend, ClassMethods
+      base.extend ClassMethods
     end
 
     module ClassMethods
@@ -44,7 +44,7 @@ module Hypa
 
   module Middleware
     def self.included(base)
-      base.send :extend, ClassMethods
+      base.extend ClassMethods
     end
     
     module ClassMethods
@@ -63,6 +63,11 @@ module Hypa
       @request.params.merge!(params)
 
       self.method(action).call
+    end
+
+    def head(status)
+      @response.status = status
+      @response.finish
     end
   end
 
@@ -88,12 +93,9 @@ module Hypa
       ActiveModel::ArraySerializer.new([self.class.model_class.find(@request.params['id'])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
     end
 
-    # TODO: Find a better way to create responses
     def delete
       self.class.model_class.find(@request.params['id']).destroy
-      @response.status = 204
-      @response.body = ''
-      @response.finish
+      head(204)
     end
   end
 
