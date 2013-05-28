@@ -61,7 +61,7 @@ module Hypa
 
       @request.params.merge!(params)
 
-      render(self.method(action).call)
+      self.method(action).call
     end
 
     def head(status)
@@ -98,7 +98,7 @@ module Hypa
     end
 
     def get
-      ActiveModel::ArraySerializer.new([self.class.model_class.find(params[:id])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
+      render ActiveModel::ArraySerializer.new([self.class.model_class.find(params[:id])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
     end
 
     def delete
@@ -126,12 +126,12 @@ module Hypa
     end
 
     def get
-      ActiveModel::ArraySerializer.new(query, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+      render ActiveModel::ArraySerializer.new(query, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
     end
 
     def post
       post = self.class.resource_class.model_class.create(params)
-      ActiveModel::ArraySerializer.new([post], root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+      render ActiveModel::ArraySerializer.new([post], root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
     end
   end
 end
