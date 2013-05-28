@@ -36,9 +36,9 @@ ActiveRecord::Schema.define do
 end
 
 class MiniTest::Spec
-  include Rack::Test::Methods
+  def env(params = {})
+    Rack::MockRequest.env_for('http://api.com/posts', :params => params)
+  end
 
-  def app; MyApp; end
-  
   after { Post.delete_all }
 end

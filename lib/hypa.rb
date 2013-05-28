@@ -49,7 +49,7 @@ module Hypa
     module ClassMethods
       attr_reader :request, :response
 
-      def call(action, env, params)
+      def call(action, env, params = {})
         self.new.call(action, env, params)
       end
     end
@@ -61,11 +61,16 @@ module Hypa
 
       @request.params.merge!(params)
 
-      self.method(action).call
+      render(self.method(action).call)
     end
 
     def head(status)
       @response.status = status
+      @response.finish
+    end
+
+    def render(content)
+      @response.body = content
       @response.finish
     end
 
@@ -93,11 +98,11 @@ module Hypa
     end
 
     def get
-      ActiveModel::ArraySerializer.new([self.class.model_class.find(params['id'])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
+      ActiveModel::ArraySerializer.new([self.class.model_class.find(params[:id])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
     end
 
     def delete
-      self.class.model_class.find(params['id']).destroy
+      self.class.model_class.find(params[:id]).destroy
       head(204)
     end
   end

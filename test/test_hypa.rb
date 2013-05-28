@@ -1,45 +1,36 @@
 require 'helper'
 
-# describe Hypa::Middleware do
-#   it 'stores status' do
-
-#   end
-# end
-
 describe Hypa::Resource do
-  it 'GET /posts/:id renders a post' do
+  it 'renders a post' do
     post = Post.create(title: 'Foobar')
+    status, headers, body = PostResource.call(:get, env, :id => post.id)
 
-    get "/posts/#{post.id}"
-
-    last_response.status.must_equal 200
-    #last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    status.must_equal 200
+    body.body.must_equal('{"posts":[{"title":"Foobar"}]}')
   end
 
-  it 'DELETE /posts/:id deletes a post' do
+  it 'deletes a post' do
     post = Post.create(title: 'Foobar')
+    status, headers, body = PostResource.call(:delete, env, :id => post.id)
 
-    delete "/posts/#{post.id}"
-
-    last_response.status.must_equal 204
+    status.must_equal 204
     Post.find_by_id(post.id).must_equal nil
   end
 end
 
 describe Hypa::Collection do
-  it 'GET /posts renders posts' do
+  it 'renders posts' do
     post = Post.create(title: 'Foobar')
+    status, headers, body = PostsCollection.call(:get, env)
 
-    get '/posts'
-    
-    last_response.status.must_equal 200
-    last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    status.must_equal 200
+    body.body.must_equal('{"posts":[{"title":"Foobar"}]}')
   end
 
   it 'GET /posts creates post' do
-    post '/posts', title: 'New post'
+    status, headers, body = PostsCollection.call(:post, env, title: 'New post')
     
-    last_response.status.must_equal 200
-    last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
+    status.must_equal 200
+    body.body.must_equal('{"posts":[{"title":"New post"}]}')
   end
 end
