@@ -1,5 +1,8 @@
 require 'helper'
 
+# TODO: Remove body.body
+# TODO: Add json-patch content type for PATCH
+
 describe Hypa::Resource do
   it 'renders a post' do
     post = Post.create(title: 'Foobar')
@@ -7,6 +10,14 @@ describe Hypa::Resource do
 
     status.must_equal 200
     body.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+  end
+
+  it 'updates a post' do
+    post = Post.create(title: 'Foobar')
+    status, headers, body = PostResource.call(:patch, env(method: 'PATCH', input: '[{"op":"replace","path":"/title","value":"Updated post"}]'), :id => post.id)
+
+    status.must_equal 200
+    body.body.must_equal('{"posts":[{"title":"Updated post"}]}')
   end
 
   it 'deletes a post' do

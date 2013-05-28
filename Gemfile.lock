@@ -3,6 +3,7 @@ PATH
   specs:
     hypa (0.1.0)
       active_model_serializers (~> 0.8.0)
+      hana
 
 GEM
   remote: https://rubygems.org/
@@ -17,6 +18,10 @@ GEM
       activesupport (= 3.2.13)
       arel (~> 3.0.2)
       tzinfo (~> 0.3.29)
+    activerecord-jdbc-adapter (1.2.9)
+    activerecord-jdbcsqlite3-adapter (1.2.9)
+      activerecord-jdbc-adapter (~> 1.2.9)
+      jdbc-sqlite3 (~> 3.7.2)
     activesupport (3.2.13)
       i18n (= 0.6.1)
       multi_json (~> 1.0)
@@ -29,7 +34,9 @@ GEM
       rest-client
       simplecov (>= 0.7)
       thor
+    hana (1.2.1)
     i18n (0.6.1)
+    jdbc-sqlite3 (3.7.2.1)
     mime-types (1.23)
     multi_json (1.7.3)
     rack (1.5.2)

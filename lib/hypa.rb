@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'active_model/array_serializer'
 require 'active_model/serializer'
+require 'hana'
 
 module Hypa
   module Actions    
@@ -11,7 +12,7 @@ module Hypa
     end
 
     module ClassMethods
-      ALLOWED_ACTIONS = [:get, :post, :delete]
+      ALLOWED_ACTIONS = [:get, :post, :patch, :delete]
 
       def actions(*actions)
         self._actions = actions
@@ -98,12 +99,28 @@ module Hypa
     end
 
     def get
-      render ActiveModel::ArraySerializer.new([self.class.model_class.find(params[:id])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
+      serialize(resource)
+    end
+
+    def patch
+      patch = Hana::Patch.new JSON.parse(@request.params['input'])
+      resource.update_attributes(patch.apply({}))
+      serialize(resource)
     end
 
     def delete
-      self.class.model_class.find(params[:id]).destroy
+      resource.destroy
       head(204)
+    end
+
+    private
+
+    def resource
+      @resource ||= self.class.model_class.find(params[:id])
+    end
+
+    def serialize(resource)
+      render ActiveModel::ArraySerializer.new([resource], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
     end
   end
 
@@ -126,12 +143,18 @@ module Hypa
     end
 
     def get
-      render ActiveModel::ArraySerializer.new(query, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+      serialize(query)
     end
 
     def post
       post = self.class.resource_class.model_class.create(params)
-      render ActiveModel::ArraySerializer.new([post], root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+      serialize([post])
+    end
+
+    private
+
+    def serialize(data)
+      render ActiveModel::ArraySerializer.new(data, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
     end
   end
 end

@@ -3,7 +3,7 @@ end
 
 class PostResource < Hypa::Resource
   attributes :title
-  actions :get, :delete
+  actions :get, :patch, :delete
 end
 
 class PostsCollection < Hypa::Collection
