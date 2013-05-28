@@ -21,7 +21,7 @@ module Hypa
       def action(name)
         if ALLOWED_ACTIONS.include?(name) && self._actions.include?(name)
           this = self
-          Proc.new { this.call(name, env, params) }
+          Proc.new { this.new(name).call(env, params) }
         else
           raise NoActionError
         end
@@ -36,7 +36,32 @@ module Hypa
     end
   end
 
+  # Code from: https://github.com/stripe/poncho/blob/master/lib/poncho/response.rb
   class Response < Rack::Response
+    def body=(value)
+      value = value.body while Rack::Response === value
+      @body = String === value ? [value.to_str] : value
+    end
+
+    def each
+      block_given? ? super : enum_for(:each)
+    end
+
+    def finish
+      if status.to_i / 100 == 1
+        headers.delete 'Content-Length'
+        headers.delete 'Content-Type'
+      elsif Array === body and not [204, 304].include?(status.to_i)
+        # if some other code has already set Content-Length, don't muck with it
+        # currently, this would be the static file-handler
+        headers['Content-Length'] ||= body.inject(0) { |l, p| l + Rack::Utils.bytesize(p) }.to_s
+      end
+
+      # Rack::Response#finish sometimes returns self as response body. We don't want that.
+      status, headers, result = super
+      result = body if result == self
+      [status, headers, result]
+    end
   end
 
   class Request < Rack::Request
@@ -49,20 +74,18 @@ module Hypa
     
     module ClassMethods
       attr_reader :request, :response
-
-      def call(action, env, params = {})
-        self.new.call(action, env, params)
-      end
     end
 
-    def call(action, env, params)
+    def call(env, params = {})
       @env = env
       @request = Request.new(env)
       @response = Response.new
 
-      @request.params.merge!(params)
+      @request.params.merge!(params.symbolize_keys)
 
-      self.method(action).call
+      @response.headers['Content-Type'] = 'application/vnd.api+json'
+
+      self.method(@object).call
     end
 
     def head(status)
@@ -136,6 +159,10 @@ module Hypa
       def resource_class
         "#{collection_name.singularize}Resource".constantize
       end
+    end
+
+    def initialize(object)
+      @object = object
     end
 
     def query

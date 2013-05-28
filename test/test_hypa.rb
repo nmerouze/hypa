@@ -1,47 +1,67 @@
 require 'helper'
 
-# TODO: Remove body.body
-# TODO: Add json-patch content type for PATCH
+describe 'A response' do
+  include Rack::Test::Methods
 
-describe Hypa::Resource do
+  def app; MyApp; end
+
+  it 'has a application/vnd.api+json Content-Type' do
+    post = Post.create(title: 'Foobar')
+
+    get '/posts'
+    last_response.headers['Content-Type'].must_equal 'application/vnd.api+json'
+    
+    get "/posts/#{post.id}"
+    last_response.headers['Content-Type'].must_equal 'application/vnd.api+json'
+  end
+end
+
+describe Hypa::Resource, 'GET' do
   it 'renders a post' do
     post = Post.create(title: 'Foobar')
-    status, headers, body = PostResource.call(:get, env, :id => post.id)
+    get "/posts/#{post.id}"
 
-    status.must_equal 200
-    body.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    last_response.status.must_equal 200
+    last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
   end
+end
 
+describe Hypa::Resource, 'PATCH' do
   it 'updates a post' do
     post = Post.create(title: 'Foobar')
-    status, headers, body = PostResource.call(:patch, env(method: 'PATCH', input: '[{"op":"replace","path":"/title","value":"Updated post"}]'), :id => post.id)
+    patch "/posts/#{post.id}", input: '[{"op":"replace","path":"/title","value":"Updated post"}]'
 
-    status.must_equal 200
-    body.body.must_equal('{"posts":[{"title":"Updated post"}]}')
+    last_response.status.must_equal 200
+    last_response.body.must_equal('{"posts":[{"title":"Updated post"}]}')
   end
+end
 
+describe Hypa::Resource do
   it 'deletes a post' do
     post = Post.create(title: 'Foobar')
-    status, headers, body = PostResource.call(:delete, env, :id => post.id)
+    delete "/posts/#{post.id}"
 
-    status.must_equal 204
+    last_response.status.must_equal 204
     Post.find_by_id(post.id).must_equal nil
   end
 end
 
-describe Hypa::Collection do
+describe Hypa::Collection, 'GET' do
   it 'renders posts' do
     post = Post.create(title: 'Foobar')
-    status, headers, body = PostsCollection.call(:get, env)
+    get '/posts'
 
-    status.must_equal 200
-    body.body.must_equal('{"posts":[{"title":"Foobar"}]}')
+    last_response.status.must_equal 200
+    last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
   end
+end
 
-  it 'GET /posts creates post' do
-    status, headers, body = PostsCollection.call(:post, env, title: 'New post')
+describe Hypa::Collection, 'POST' do
+  it 'creates post' do
+    post = Post.create(title: 'Foobar')
+    post '/posts', title: 'New post'
     
-    status.must_equal 200
-    body.body.must_equal('{"posts":[{"title":"New post"}]}')
+    last_response.status.must_equal 200
+    last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
   end
 end
