@@ -35,4 +35,11 @@ describe Hypa::Collection do
     last_response.status.must_equal 200
     last_response.body.must_equal('{"posts":[{"title":"Foobar"}]}')
   end
+
+  it 'GET /posts creates post' do
+    post '/posts', title: 'New post'
+    
+    last_response.status.must_equal 200
+    last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
+  end
 end

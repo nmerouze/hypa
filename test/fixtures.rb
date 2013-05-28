@@ -7,11 +7,12 @@ class PostResource < Hypa::Resource
 end
 
 class PostsCollection < Hypa::Collection
-  actions :get
+  actions :get, :post
 end
 
 class MyApp < Sinatra::Base
   get '/posts', &PostsCollection.action(:get)
+  post '/posts', &PostsCollection.action(:post)
   get '/posts/:id', &PostResource.action(:get)
   delete '/posts/:id', &PostResource.action(:delete)
 end

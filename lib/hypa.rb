@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'active_support/core_ext/module/delegation'
 require 'active_model/array_serializer'
 require 'active_model/serializer'
 
@@ -12,7 +11,7 @@ module Hypa
     end
 
     module ClassMethods
-      ALLOWED_ACTIONS = [:get, :delete]
+      ALLOWED_ACTIONS = [:get, :post, :delete]
 
       def actions(*actions)
         self._actions = actions
@@ -69,6 +68,10 @@ module Hypa
       @response.status = status
       @response.finish
     end
+
+    def params
+      @request.params
+    end
   end
 
   class Resource < ActiveModel::Serializer
@@ -90,11 +93,11 @@ module Hypa
     end
 
     def get
-      ActiveModel::ArraySerializer.new([self.class.model_class.find(@request.params['id'])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
+      ActiveModel::ArraySerializer.new([self.class.model_class.find(params['id'])], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
     end
 
     def delete
-      self.class.model_class.find(@request.params['id']).destroy
+      self.class.model_class.find(params['id']).destroy
       head(204)
     end
   end
@@ -111,14 +114,19 @@ module Hypa
       def resource_class
         "#{collection_name.singularize}Resource".constantize
       end
+    end
 
-      def query
-        resource_class.model_class.all
-      end
+    def query
+      self.class.resource_class.model_class.all
     end
 
     def get
-      ActiveModel::ArraySerializer.new(self.class.query, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+      ActiveModel::ArraySerializer.new(query, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+    end
+
+    def post
+      post = self.class.resource_class.model_class.create(params)
+      ActiveModel::ArraySerializer.new([post], root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
     end
   end
 end
