@@ -35,9 +35,19 @@ end
 describe Hypa::Resource, 'PATCH' do
   it 'updates a post' do
     post = Post.create(title: 'Foobar')
-    patch "/posts/#{post.id}", input: '[{"op":"replace","path":"/title","value":"Updated post"}]'
+    header 'Content-Type', 'application/json-patch+json'
+    patch "/posts/#{post.id}", '[{"op":"replace","path":"/title","value":"Updated post"}]'
 
     last_response.status.must_equal 204
+  end
+
+  describe 'without correct media type' do
+    it 'returns 415 Unsupported Media Type' do
+      post = Post.create(title: 'Foobar')
+      patch "/posts/#{post.id}", '[{"op":"replace","path":"/title","value":"Updated post"}]'
+
+      last_response.status.must_equal 415
+    end
   end
 end
 
@@ -64,11 +74,20 @@ end
 describe Hypa::Collection, 'POST' do
   it 'creates post' do
     post = Post.create(title: 'Foobar')
-    post '/posts', title: 'New post'
+    header 'Content-Type', 'application/json'
+    post '/posts', '{"posts":[{"title":"New post"}]}'
     
     last_response.status.must_equal 201
     last_response.headers['Location'].must_equal "/posts/#{Post.last.id}"
     last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
+  end
+
+  describe 'without correct media type' do
+    it 'returns 415 Unsupported Media Type' do
+      post "/posts", '{"posts":[{"title":"New post"}]}'
+
+      last_response.status.must_equal 415
+    end
   end
 end
 

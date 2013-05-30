@@ -23,6 +23,7 @@ module Hypa
           this = self
           Proc.new { this.new(name).call(env, params) }
         else
+          # TODO: Proc.new { head(405) }
           raise NoActionError
         end
       end
@@ -132,7 +133,8 @@ module Hypa
     end
 
     def patch
-      patch = Hana::Patch.new JSON.parse(@request.params['input'])
+      return head(415) if @env['CONTENT_TYPE'] != 'application/json-patch+json'
+      patch = Hana::Patch.new JSON.parse(@request.env['rack.input'].read)
       resource.update_attributes(patch.apply({}))
       head(204)
     end
@@ -180,7 +182,9 @@ module Hypa
     end
 
     def post
-      post = self.class.resource_class.model_class.create(params)
+      return head(415) if @env['CONTENT_TYPE'] != 'application/json'
+      posts = JSON.parse(@request.env['rack.input'].read)[self.class.collection_name.underscore]
+      post = self.class.resource_class.model_class.create(posts.first)
       headers['Location'] = "/#{self.class.collection_name.underscore}/#{post.id}"
       serialize([post], status: 201)
     end
