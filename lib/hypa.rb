@@ -12,7 +12,7 @@ module Hypa
     end
 
     module ClassMethods
-      ALLOWED_ACTIONS = [:get, :post, :patch, :delete]
+      ALLOWED_ACTIONS = [:get, :post, :patch, :delete, :options]
 
       def actions(*actions)
         self._actions = actions
@@ -26,10 +26,11 @@ module Hypa
           raise NoActionError
         end
       end
+    end
 
-      # def options(env)
-      #   env.response.headers['Allow'] = self._actions.map { |a| a.to_s.upcase }.join(',')
-      # end
+    def options
+      headers['Allow'] = self._actions.map { |a| a.to_s.upcase }.join(',')
+      head(200)
     end
 
     class NoActionError < Exception

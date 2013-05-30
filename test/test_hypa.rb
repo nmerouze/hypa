@@ -12,6 +12,16 @@ describe 'A response' do
   end
 end
 
+describe Hypa::Resource, 'OPTIONS' do
+  it 'returns resource options' do
+    post = Post.create(title: 'Foobar')
+    options "/posts/#{post.id}"
+
+    last_response.status.must_equal 200
+    last_response.headers['Allow'].must_equal 'GET,PATCH,DELETE,OPTIONS'
+  end
+end
+
 describe Hypa::Resource, 'GET' do
   it 'renders a post' do
     post = Post.create(title: 'Foobar')
@@ -60,5 +70,14 @@ describe Hypa::Collection, 'POST' do
     last_response.status.must_equal 201
     last_response.headers['Location'].must_equal "/posts/#{Post.last.id}"
     last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
+  end
+end
+
+describe Hypa::Collection, 'OPTIONS' do
+  it 'returns collection options' do
+    options '/posts'
+
+    last_response.status.must_equal 200
+    last_response.headers['Allow'].must_equal 'GET,POST,OPTIONS'
   end
 end
