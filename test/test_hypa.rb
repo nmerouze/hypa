@@ -1,10 +1,6 @@
 require 'helper'
 
 describe 'A response' do
-  include Rack::Test::Methods
-
-  def app; MyApp; end
-
   it 'has a application/vnd.api+json Content-Type' do
     post = Post.create(title: 'Foobar')
 
@@ -61,7 +57,8 @@ describe Hypa::Collection, 'POST' do
     post = Post.create(title: 'Foobar')
     post '/posts', title: 'New post'
     
-    last_response.status.must_equal 200
+    last_response.status.must_equal 201
+    last_response.headers['Location'].must_equal "/posts/#{Post.last.id}"
     last_response.body.must_equal('{"posts":[{"title":"New post"}]}')
   end
 end

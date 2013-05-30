@@ -93,7 +93,12 @@ module Hypa
       @response.finish
     end
 
-    def render(content)
+    def headers
+      @response.headers
+    end
+
+    def render(content, options = {})
+      @response.status = options[:status] if options[:status]
       @response.body = content
       @response.finish
     end
@@ -175,13 +180,14 @@ module Hypa
 
     def post
       post = self.class.resource_class.model_class.create(params)
-      serialize([post])
+      headers['Location'] = "/#{self.class.collection_name.underscore}/#{post.id}"
+      serialize([post], status: 201)
     end
 
     private
 
-    def serialize(data)
-      render ActiveModel::ArraySerializer.new(data, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json
+    def serialize(data, options = {})
+      render ActiveModel::ArraySerializer.new(data, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json, options
     end
   end
 end
