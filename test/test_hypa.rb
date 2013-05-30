@@ -37,8 +37,7 @@ describe Hypa::Resource, 'PATCH' do
     post = Post.create(title: 'Foobar')
     patch "/posts/#{post.id}", input: '[{"op":"replace","path":"/title","value":"Updated post"}]'
 
-    last_response.status.must_equal 200
-    last_response.body.must_equal('{"posts":[{"title":"Updated post"}]}')
+    last_response.status.must_equal 204
   end
 end
 

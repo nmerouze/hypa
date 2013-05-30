@@ -134,7 +134,7 @@ module Hypa
     def patch
       patch = Hana::Patch.new JSON.parse(@request.params['input'])
       resource.update_attributes(patch.apply({}))
-      serialize(resource)
+      head(204)
     end
 
     def delete
