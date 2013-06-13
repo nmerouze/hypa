@@ -6,6 +6,21 @@
 
 I'm quickly iterating over different systems and syntaxes. So right now this is just a playground.
 
+# Status
+
+A resource defines a schema which will be used for persistence and serialization. Hypa.app is dealing with requests and responses so you don't have to. All you have to do is: connect to a DB and create resource classes. See example:
+
+    Hypa.connection = Sequel.sqlite
+
+    class PostsResource
+      primary_key :id
+      string :title, key: :my_title
+    end
+
+    Hypa.migrate!
+
+    run Hypa.app
+
 # List of Hypermedia content types
 
 Hypa is using its own content type "application/vnd.hypa+json" (far from being finalized). I like JSON API and the data part will try to follow this spec. The metadata part is similar to the actions from Siren.
