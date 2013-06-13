@@ -1,13 +1,9 @@
 source 'https://rubygems.org'
 
-gemspec
-
-platforms :ruby do
-  gem 'sqlite3'
-end
-
-platforms :jruby do
-  gem 'jdbc-sqlite3'
-  gem 'activerecord-jdbc-adapter'
-  gem 'activerecord-jdbcsqlite3-adapter'
-end
+gem 'actionpack', '~> 4.0.0.rc2'
+gem 'activesupport', '~> 4.0.0.rc2'
+gem 'uri_template'
+gem 'sequel'
+gem 'sqlite3'
+gem 'rack-test'
+gem 'rspec-given'

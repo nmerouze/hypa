@@ -1,198 +1,100 @@
-# encoding: utf-8
-require 'active_model/array_serializer'
-require 'active_model/serializer'
-require 'hana'
+require 'active_support/all'
+require 'action_controller'
+require 'sequel'
+require 'json'
+require 'uri_template'
 
-module Hypa
-  module Actions    
-    def self.included(base)
-      base.class_attribute :_actions
-      base._actions = []
-      base.extend ClassMethods
-    end
+class Hypa
+  cattr_accessor :connection
 
-    module ClassMethods
-      ALLOWED_ACTIONS = [:get, :post, :patch, :delete, :options]
-
-      def actions(*actions)
-        self._actions = actions
+  def self.migrate!
+    Hypa::Resource.descendants.each do |resource|
+      Hypa.connection.create_table!(resource.table_name) do
+        resource.properties.each { |name, options| column name, options.delete(:type), options.slice(:primary_key) }
       end
+    end
+  end
 
-      def action(name)
-        if ALLOWED_ACTIONS.include?(name) && self._actions.include?(name)
-          this = self
-          Proc.new { this.new(name).call(env, params) }
-        else
-          # TODO: Proc.new { head(405) }
-          raise NoActionError
+  def self.app
+    router = ActionDispatch::Routing::RouteSet.new
+
+    router.draw do
+      Hypa::Resource.descendants.each do |resource|
+        resource.actions.each do |action_name, action_options|
+          match URITemplate.new(action_options.last).expand(resource_name: resource.table_name), to: resource.action(action_name), via: action_options.first
         end
       end
     end
 
-    def options
-      headers['Allow'] = self._actions.map { |a| a.to_s.upcase }.join(',')
-      head(200)
-    end
-
-    class NoActionError < Exception
-    end
+    router
   end
 
-  # Code from: https://github.com/stripe/poncho/blob/master/lib/poncho/response.rb
-  class Response < Rack::Response
-    def body=(value)
-      value = value.body while Rack::Response === value
-      @body = String === value ? [value.to_str] : value
+  class Controller < ActionController::Metal
+    def show
+      record = Hypa.connection.from(controller_name).filter(id: params[:id]).first
+      self.content_type = 'application/json'
+      self.status = 200
+      self.response_body = represent(record)
     end
 
-    def each
-      block_given? ? super : enum_for(:each)
-    end
-
-    def finish
-      if status.to_i / 100 == 1
-        headers.delete 'Content-Length'
-        headers.delete 'Content-Type'
-      elsif Array === body and not [204, 304].include?(status.to_i)
-        # if some other code has already set Content-Length, don't muck with it
-        # currently, this would be the static file-handler
-        headers['Content-Length'] ||= body.inject(0) { |l, p| l + Rack::Utils.bytesize(p) }.to_s
-      end
-
-      # Rack::Response#finish sometimes returns self as response body. We don't want that.
-      status, headers, result = super
-      result = body if result == self
-      [status, headers, result]
-    end
-  end
-
-  class Request < Rack::Request
-  end
-
-  module Middleware
-    def self.included(base)
-      base.extend ClassMethods
-    end
-    
-    module ClassMethods
-      attr_reader :request, :response
-    end
-
-    def call(env, params = {})
-      @env = env
-      @request = Request.new(env)
-      @response = Response.new
-
-      @request.params.merge!(params.symbolize_keys)
-
-      @response.headers['Content-Type'] = 'application/vnd.api+json'
-
-      self.method(@object).call
-    end
-
-    def head(status)
-      @response.status = status
-      @response.finish
-    end
-
-    def headers
-      @response.headers
-    end
-
-    def render(content, options = {})
-      @response.status = options[:status] if options[:status]
-      @response.body = content
-      @response.finish
-    end
-
-    def params
-      @request.params
-    end
-  end
-
-  class Resource < ActiveModel::Serializer
-    include Hypa::Actions
-    include Hypa::Middleware
-
-    def initialize(object = nil, options = {})
-      super(object, options)
-    end
-
-    class << self
-      def resource_name
-        name.sub(/Resource$/, '')
-      end
-
-      def model_class
-        resource_name.constantize
-      end
-    end
-
-    def get
-      serialize(resource)
-    end
-
-    def patch
-      return head(415) if @env['CONTENT_TYPE'] != 'application/json-patch+json'
-      patch = Hana::Patch.new JSON.parse(@request.env['rack.input'].read)
-      resource.update_attributes(patch.apply({}))
-      head(204)
-    end
-
-    def delete
-      resource.destroy
-      head(204)
+    def create
+      params[:id] = Hypa.connection.from(controller_name).insert(params)
+      show
+      self.status = 201
     end
 
     private
 
     def resource
-      @resource ||= self.class.model_class.find(params[:id])
+      @resource ||= self.class.name.demodulize.sub(/Controller$/, 'Resource').constantize
     end
 
-    def serialize(resource)
-      render ActiveModel::ArraySerializer.new([resource], root: self.class.resource_name.pluralize.underscore, each_serializer: self.class).to_json
+    def represent(data)
+      hash = {}
+      resource.properties.each { |n, o| hash[o[:key]] = data[n] }
+      JSON.generate(controller_name => [hash])
     end
   end
 
-  class Collection
-    include Hypa::Actions
-    include Hypa::Middleware
+  class Resource
+    class_attribute :properties
+    self.properties = {}
 
-    class << self
-      def collection_name
-        name.sub(/Collection$/, '')
-      end
+    class_attribute :actions
+    self.actions = {
+      index: [:get, '/{resource_name}'],
+      create: [:post, '/{resource_name}'],
+      show: [:get, '/{resource_name}/:id'],
+      update: [:patch, '/{resource_name}/:id'],
+      destroy: [:delete, '/{resource_name}/:id']
+    }
 
-      def resource_class
-        "#{collection_name.singularize}Resource".constantize
-      end
+    # Model/Serialization related
+
+    def self.table_name
+      self.name.sub(/Resource$/, '').underscore
     end
 
-    def initialize(object)
-      @object = object
+    def self.primary_key(name, key: name)
+      self.property(name, type: 'integer', key: key, primary_key: true)
     end
 
-    def query
-      self.class.resource_class.model_class.all
+    def self.string(name, key: name)
+      self.property(name, type: 'string', key: key)
     end
 
-    def get
-      serialize(query)
+    def self.property(name, type: 'string', key: name, **options)
+      self.properties[name] = { type: type, key: key }.merge(options)
     end
 
-    def post
-      return head(415) if @env['CONTENT_TYPE'] != 'application/json'
-      posts = JSON.parse(@request.env['rack.input'].read)[self.class.collection_name.underscore]
-      post = self.class.resource_class.model_class.create(posts.first)
-      headers['Location'] = "/#{self.class.collection_name.underscore}/#{post.id}"
-      serialize([post], status: 201)
+    # Controller related
+
+    def self.controller
+      @controller ||= self.const_set(self.name.sub(/Resource$/, 'Controller'), Class.new(Controller))
     end
 
-    private
-
-    def serialize(data, options = {})
-      render ActiveModel::ArraySerializer.new(data, root: self.class.collection_name.underscore, each_serializer: self.class.resource_class).to_json, options
+    def self.action(name)
+      self.controller.action(name)
     end
   end
 end
